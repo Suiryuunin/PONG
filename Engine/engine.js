@@ -1,4 +1,18 @@
 let _DELTATIME = 0;
+let _PDELTATIME = 0;
+
+const TargetFPS = document.createElement("div");
+TargetFPS.style.position = "absolute";
+TargetFPS.style.bottom = "32px";
+TargetFPS.style.right = "0px";
+TargetFPS.style.transform = "translateZ(1px)";
+document.querySelector("body").appendChild(TargetFPS);
+const LiveFPS = document.createElement("div");
+LiveFPS.style.position = "absolute";
+LiveFPS.style.bottom = "0px";
+LiveFPS.style.right = "0px";
+LiveFPS.style.transform = "translateZ(1px)";
+document.querySelector("body").appendChild(LiveFPS);
 
 class Engine
 {
@@ -10,23 +24,40 @@ class Engine
         this.update = update;
         this.render = render;
         this.fps = fps;
+        this.fpsCap = 60;
         this.stopQueued = 0;
+
+        _PDELTATIME = 1 / this.fps;
+
+        window.addEventListener("keydown", (e) => {
+            if (e.code == "Digit9" && this.fps > 1)
+            {
+                this.fps--;
+            }
+            if (e.code == "Digit0" && this.fps < this.fpsCap)
+            {
+                this.fps++;
+            }
+        });
 
         this.run = (time) =>
         {
             this.time = time;
             this.delta = this.time - this.timeStamp;
 
-            if (this.delta >= Math.floor(1000 / this.fps))
+            if (this.delta >= 1000 / (this.fps + 4))
             {
                 this.update();
                 this.render();
 
-                // FPSDISPLAY.word = ["UPDATE: "+(1000/this.delta).toFixed(2)];
-                // FPSDISPLAYR.word = ["RENDER: "+(1000/this.deltaR).toFixed(2)];
+                TargetFPS.innerHTML = "Target FPS: "+this.fps.toFixed(2);
+                LiveFPS.innerHTML = " Live FPS: "+(1000/this.delta).toFixed(2);
 
                 this.timeStamp = time;
+
                 _DELTATIME = this.delta / 1000;
+                if (_DELTATIME > 2 / this.fps)
+                    _DELTATIME = 1 / this.fps;
             }
 
             this.animationRequest = window.requestAnimationFrame(this.run);

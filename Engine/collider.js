@@ -2,7 +2,7 @@
 
 class RectCollider
 {
-    constructor(t, sides)
+    constructor(t = {x:0,y:0,w:0,h:0, o: {x:0,y:0}}, sides = _BLOCKALL)
     {
         this.parent = 0;
         this.t = t;
@@ -25,12 +25,6 @@ class RectCollider
         return {l:l,r:r,t:t,b:b};
     }
 
-    checkRCCollision(target)
-    {
-        if (this.sides != _NOCOLLISION)
-            return this.rectCircle(target.center);
-    }
-
     compileSides({l,r,t,b})
     {
         return (l+r+t+b) > 0;
@@ -42,12 +36,34 @@ class RectCollider
         {
             if (target.type == "rect")
             {
-                return this.compileSides(this.RRCollision(target, {l,r,t,b}));
-                
+                if (this.sides != _NOCOLLISION)
+                    return this.compileSides(this.RRCollision(target, {l,r,t,b}));
+                return false;
             }
             if (target.type == "circle")
             {
-                return this.checkRCCollision(target);
+                if (this.sides != _NOCOLLISION)
+                    return this.compileSides(this.rectCircle(target, this.sides));
+                return false;
+            }
+        }
+    }
+
+    areSidesCollidingWith(target, {l,r,t,b} = {l:false,r:false,t:false,f:false})
+    {
+        if (target != undefined)
+        {
+            if (target.type == "rect")
+            {
+                if (this.sides != _NOCOLLISION)
+                    return this.RRCollision(target, {l,r,t,b});
+                return false;
+            }
+            if (target.type == "circle")
+            {
+                if (this.sides != _NOCOLLISION)
+                    return this.rectCircle(target, this.sides);
+                return false;
             }
         }
     }
@@ -106,8 +122,6 @@ class RectCollider
         const oldx = this.oldt.x + _o;
         const __x = x + w * o.x, __y = y + h * o.y;
 
-        console.log(_x+this.t.w +" vs "+ __x)
-
         if (_x+this.t.w   >= __x   &&
             oldx+this.t.w <= __x   &&
             _y+this.t.h   >= __y   &&
@@ -117,20 +131,22 @@ class RectCollider
         return false;
     }
 
-    rectCircle({centerX,centerY})
+    rectCircle(target)
     {
         const rx = this.t.x + this.t.w * this.t.o.x, ry = this.t.y + this.t.h * this.t.o.y;
 
-        const cx = centerX, cy = centerY;
+        const cx = target.center.x, cy = target.center.y;
         
         let testX = cx;
         let testY = cy;
+
+        let l = false,r = false,t = false,b = false;
       
         // which edge is closest?
-        if (cx < rx)        {testX = rx;  }    // test left edge
-        else if (cx > rx+w) {testX = rx+w;}   // right edge
-        if (cy < ry)        {testY = ry;  }    // top edge
-        else if (cy > ry+h) {testY = ry+h;}   // bottom edge
+        if (cx < rx)               {testX = rx; l = true}    // test left edge
+        else if (cx > rx+this.t.w) {testX = rx+this.t.w; r = true}   // right edge
+        if (cy < ry)               {testY = ry; t = true;}    // top edge
+        else if (cy > ry+this.t.h) {testY = ry+this.t.h; b = true}   // bottom edge
       
         // get distance from closest edges
         const distX = cx-testX;
@@ -138,8 +154,8 @@ class RectCollider
         const distance = Math.sqrt(distX**2+distY**2);
       
         // if the distance is less than the radius, collision!
-        if (distance <= this.t.w/2)
-            return true;
+        if (distance <= target.t.w/2)
+            return {l,r,t,b};
 
         return false;
     }
@@ -151,7 +167,6 @@ class RectCollider
 
     updateTransform()
     {
-        console.log(this.parent)
         this.t = this.parent.t;
     }
 
@@ -163,23 +178,13 @@ class RectCollider
 
 class CircleCollider
 {
-    constructor(t, sides)
+    constructor(t = {x:0,y:0,w:0,h:0, o: {x:0,y:0}})
     {
         this.parent = 0;
         this.t = t;
-        this.sides = sides;
 
         this.type = "circle";
-    }
-
-    checkCRCollision(target)
-    {
-        if (this.sides != _NOCOLLISION)
-            return this.circleRect(target);
-    }
-    checkCCCollision(target)
-    {
-        return this.circleCircle({x:this.center.x,y:this.center.y}, this.radius, target);
+        this.center = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
     }
 
     isCollidingWith(target)
@@ -188,17 +193,18 @@ class CircleCollider
         {
             if (target.type == "rect")
             {
-                console.log("a")
-                return this.checkCRCollision(target.t);
+                if (target.sides != _NOCOLLISION)
+                    return this.circleRect(target.t, target.sides);
+                return false;
             }
             if (target.type == "circle")
             {
-                return this.checkCCCollision(target.center);
+                return this.circleCircle(target.center, target.t.w/2);
             }
         }
     }
 
-    circleRect({x,y,w,h,o})
+    circleRect({x,y,w,h,o}, sides)
     {
         const rx = x + w * o.x, ry = y + h * o.y;
 
@@ -208,10 +214,10 @@ class CircleCollider
         let testY = cy;
       
         // which edge is closest?
-        if (cx < rx)        {testX = rx;  }    // test left edge
-        else if (cx > rx+w) {testX = rx+w;}   // right edge
-        if (cy < ry)        {testY = ry;  }    // top edge
-        else if (cy > ry+h) {testY = ry+h;}   // bottom edge
+        if      (cx < rx && sides.l)   {testX = rx;  }    // test left edge
+        else if (cx > rx+w && sides.r) {testX = rx+w;}   // right edge
+        if      (cy < ry && sides.t)   {testY = ry;  }    // top edge
+        else if (cy > ry+h && sides.b) {testY = ry+h;}   // bottom edge
       
         // get distance from closest edges
         const distX = cx-testX;
@@ -219,9 +225,25 @@ class CircleCollider
         const distance = Math.sqrt(distX**2+distY**2);
       
         // if the distance is less than the radius, collision!
-        if (distance <= this.t.w/2)
+        if (distance != 0 && distance <= this.t.w/2)
             return true;
 
+        return false;
+    }
+    
+    circleCircle({x,y}, r)
+    {
+
+        const cx = this.center.x, cy = this.center.y;
+
+        const distX = cx-x;
+        const distY = y-cy;
+        const distance = Math.sqrt(distX**2+distY**2);
+
+        if (distance <= (r+this.t.w/2))
+        {
+            return true;
+        }
         return false;
     }
 
@@ -230,8 +252,15 @@ class CircleCollider
         this.t = t;
     }
 
-    updateTransform(t)
+    updateTransform()
     {
-        this.t = parent.t;
+        this.t = this.parent.t;
+        this.center = this.parent.center;
+    }
+
+    updateOldTransform()
+    {
+        this.oldt = this.parent.oldt;
+        this.oldcenter = this.parent.oldcenter;
     }
 }

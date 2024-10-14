@@ -153,6 +153,29 @@ class Renderer
         ctx.globalAlpha = 1;
     }
 
+    drawCircle(ctx, {x, y}, r, color = this.color, alpha = 1, content = "fill", thickness = 1, color2)
+    {
+        if (alpha == 0) return;
+
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+
+        if (content.includes("border"))
+        {
+            ctx.lineWidth = thickness;
+            ctx.strokeStyle = color2 == undefined ? color : color2;
+            ctx.stroke();
+        }
+        
+        if (content.includes("fill"))
+        {
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
+
     resize(w, h, ratio)
     {
         if (h / w > ratio)
@@ -170,7 +193,7 @@ class Renderer
 
     render()
     {
-        this.display.imageSmoothingEnabled = false;
+        this.display.imageSmoothingEnabled = true;
 
         this.display.drawImage(currentCtx.canvas,
             0, 0,

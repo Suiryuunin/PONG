@@ -35,7 +35,7 @@ class Word
     }
 }
 
-class Rect
+class StaticObject
 {
     constructor(type = "none", {x,y,w,h,o}, c, collider, initFrame = 0, delay = 1, loop = true)
     {
@@ -55,15 +55,14 @@ class Rect
         if (collider)
         {
             this.hitbox = collider;
-            this.hitbox.parent = this;
-            this.hitbox.updateTransform();
+            this.hitbox.t = this.t;
         }
 
         this.flip = {x:1,y:1};
         this.r = 0;
         this.alpha = 1;
 
-        this.center = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
+        this.center = {x:this.t.x + this.t.w*this.t.o.x + this.t.w/2, y:this.t.y + this.t.h*this.t.o.y + this.t.h/2};
 
         if (this.type == "ani")
         {
@@ -101,8 +100,7 @@ class Rect
     {
         if (this.hitbox)
         {
-            this.hitbox.parent = this;
-            this.hitbox.updateTransform();
+            this.hitbox.t = this.t;
         }
         if (this.updateMore != undefined)
             this.updateMore();
@@ -112,9 +110,15 @@ class Rect
     {
         switch(this.type)
         {
-            case "color":
+            case "rect":
             {
                 rr.drawRect(ctx, this.t, this.c);
+                break;
+            }
+
+            case "circle":
+            {
+                rr.drawCircle(ctx, this.center, this.t.w / 2, this.c);
                 break;
             }
 
@@ -183,7 +187,7 @@ class Rect
     // }
 }
 
-class Box extends Rect
+class Box extends StaticObject
 {
     constructor({x,y,w,h,o}, c, collider, flipX = 1)
     {
@@ -192,7 +196,7 @@ class Box extends Rect
     }
 }
 
-class Img extends Rect
+class Img extends StaticObject
 {
     constructor({x,y,w,h,o}, c, collider, flipX = 1)
     {
@@ -201,7 +205,7 @@ class Img extends Rect
     }
 }
 
-class Dynamic extends Rect
+class Dynamic extends StaticObject
 {
     constructor(type, {x,y,w,h,o}, c, collider)
     {
@@ -211,6 +215,7 @@ class Dynamic extends Rect
         this.direction = {x:0,y:0};
         this.v = {x:0, y:0};
         this.oldt = {};
+        this.oldcenter = {};
     }
 
     setOldTransform()
@@ -220,9 +225,9 @@ class Dynamic extends Rect
         this.oldt.w = this.t.w;
         this.oldt.h = this.t.h;
         this.oldt.o = this.t.o;
+        this.oldcenter = {x:this.oldt.x + this.oldt.w*this.oldt.o.x + this.oldt.w/2, y:this.oldt.y + this.oldt.h*this.oldt.o.y + this.oldt.h/2};
 
-        if (this.hitbox)
-            this.hitbox.updateOldTransform();
+        this.hitbox.updateOldTransform();
     }
 
     moveTo({x,y})
@@ -269,39 +274,27 @@ class Dynamic extends Rect
     update()
     {
         this.hitbox.parent = this;
-        console.log(this)
         this.setOldTransform();
         
-        this.t.y -= this.v.y;
-        this.t.x += this.v.x;
+        this.t.y -= this.v.y * _DELTATIME;
+        this.t.x += this.v.x * _DELTATIME;
 
-        if (this.hitbox)
-            this.hitbox.updateTransform();
+        this.center = {x:this.t.x + this.t.w*this.t.o.x + this.t.w/2, y:this.t.y + this.t.h*this.t.o.y + this.t.h/2};
+        this.hitbox.updateTransform();
 
         if (this.updateMore != undefined)
             this.updateMore();
     }
 
+    collideWith(target)
+    {
+        const sides = rect.hitbox.areSidesCollidingWith(rect2.hitbox);
+        
+        
+    }
+
     
 
-    circleCircle({x,y}, r, e)
-    {
-
-        const cx = this.center.x, cy = this.center.y;
-
-        const distX = cx-x;
-        const distY = y-cy;
-        const distance = Math.sqrt(distX**2+distY**2);
-
-        if (distance <= (r+this.t.w/2))
-        {
-            if (this.circleCircleA != undefined)
-                return this.circleCircleA({x:distX,y:distY}, distance, r, e);
-
-            return true;
-        }
-        return false;
-    }
 
     
 }
