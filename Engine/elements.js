@@ -37,7 +37,7 @@ class Word
 
 class StaticObject
 {
-    constructor(type = "none", {x,y,w,h,o}, c, collider, initFrame = 0, delay = 1, loop = true)
+    constructor(type = "none", {x,y,w,h,o}, c, collider = undefined, initFrame = 0, delay = 1, loop = true)
     {
         this.type = type;
         this.name = "nameless";
@@ -207,7 +207,7 @@ class Img extends StaticObject
 
 class Dynamic extends StaticObject
 {
-    constructor(type, {x,y,w,h,o}, c, collider)
+    constructor(type, {x,y,w,h,o}, c, collider = undefined)
     {
         super(type, {x,y,w,h,o}, c, collider)
         
@@ -227,7 +227,8 @@ class Dynamic extends StaticObject
         this.oldt.o = this.t.o;
         this.oldcenter = {x:this.oldt.x + this.oldt.w*this.oldt.o.x + this.oldt.w/2, y:this.oldt.y + this.oldt.h*this.oldt.o.y + this.oldt.h/2};
 
-        this.hitbox.updateOldTransform();
+        if (this.hitbox)
+            this.hitbox.updateOldTransform();
     }
 
     moveTo({x,y})
@@ -273,14 +274,16 @@ class Dynamic extends StaticObject
 
     update()
     {
-        this.hitbox.parent = this;
+        if (this.hitbox)
+            this.hitbox.parent = this;
         this.setOldTransform();
         
         this.t.y -= this.v.y * _DELTATIME;
         this.t.x += this.v.x * _DELTATIME;
 
         this.center = {x:this.t.x + this.t.w*this.t.o.x + this.t.w/2, y:this.t.y + this.t.h*this.t.o.y + this.t.h/2};
-        this.hitbox.updateTransform();
+        if (this.hitbox)
+            this.hitbox.updateTransform();
 
         if (this.updateMore != undefined)
             this.updateMore();

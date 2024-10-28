@@ -17,26 +17,26 @@ class RectCollider
         {
             case this.parent.v.x < 0:
             {
-                this.t.x = x+w + w*o.x;
+                this.t.x = (x+w+w*o.x)-this.t.w*this.t.o.x;
 
                 return;
             }
             case this.parent.v.x > 0:
             {
-                this.parent.t.x = x-w + w*o.x;
+                this.parent.t.x = (x+w*o.x)-this.t.w - this.t.w*this.t.o.x;
 
                 return;
             }
 
             case this.parent.v.y < 0:
             {
-                this.t.y = y-h + h*o.y;
+                this.t.y = (y+h*o.y)-this.t.h - this.t.h*this.t.o.y;
 
                 return;
             }
             case this.parent.v.y > 0:
             {
-                this.t.y = y+h + h*o.y;
+                this.t.y = (y+h+h*o.y)-this.t.h*this.t.o.y;
 
                 return;
             }
@@ -47,19 +47,19 @@ class RectCollider
         const cx = target.center.x, cy = target.center.y;
         const r = target.t.w/2;
 
-        const left = this.t.x + this.t.w*this.t.o;
-        const right = this.t.x + this.t.w + this.t.w*this.t.o;
+        const left = this.t.x + this.t.w*this.t.o.x;
+        const right = this.t.x + this.t.w + this.t.w*this.t.o.x;
         const top = this.t.y + this.t.h*this.t.o.y;
         const bottom = this.t.y + this.t.h + this.t.h*this.t.o.y;
 
         switch(true)
         {
-            case (this.parent.v.x != 0 && top <= cy - r && bottom >= cy + r):
+            case (this.parent.v.x != 0 && top <= cy && bottom >= cy):
             {
                 this.repositionR(target.t);
                 return;
             }
-            case (this.parent.v.y != 0 && left >= cx - r && right <= cy + r):
+            case (this.parent.v.y != 0 && left <= cx && right >= cx):
             {
                 this.repositionR(target.t);
                 return;
@@ -112,21 +112,39 @@ class RectCollider
             {
                 case top >= cy:
                 {
-                    console.log(this.t.x)
-                    this.t.x = Math.sqrt((r*vx)**2-(top - cy)**2) + cx - (this.t.w + this.t.w*this.t.o.x)*(vx == 1 ? 2 : 0);
-                    console.log(this.t.x)
+                    point.t.x =  Math.sqrt((r)**2-(top-cy)**2)*-vx + cx;
+                    point.t.y = top;
+                    this.t.x = Math.sqrt((r)**2-(top-cy)**2)*-vx + cx - (this.t.w)*(vx == 1 ? 1 : 0) - this.t.w*this.t.o.x;
                     return;
                 }
                 case bottom <= cy:
                 {
-                    this.t.x =  Math.sqrt((r)**2-(bottom-cy)**2)*vx + cx - (this.t.w + this.t.w*this.t.o.x)*(vx == 1 ? 1 : 0);
+                    point.t.x =  Math.sqrt((r)**2-(bottom-cy)**2)*-vx + cx;
+                    point.t.y = bottom;
+                    this.t.x =  Math.sqrt((r)**2-(bottom-cy)**2)*-vx + cx - (this.t.w )*(vx == 1 ? 1 : 0) - this.t.w*this.t.o.x;
                     return;
                 }
             }
         }
         if (vy != false)
         {
-
+            switch(true)
+            {
+                case left >= cx:
+                {
+                    point.t.x = left;
+                    point.t.y = Math.sqrt((r)**2-(left-cx)**2)*vy + cy;
+                    this.t.y = Math.sqrt((r)**2-(left-cx)**2)*vy + cy - (this.t.h)*(vy == -1 ? 1 : 0) - this.t.h*this.t.o.y;
+                    return;
+                }
+                case right <= cx:
+                {
+                    point.t.x = right;
+                    point.t.y = Math.sqrt((r)**2-(right-cx)**2)*vy + cy;
+                    this.t.y =  Math.sqrt((r)**2-(right-cx)**2)*vy + cy - (this.t.h)*(vy == -1 ? 1 : 0) - this.t.h*this.t.o.y;
+                    return;
+                }
+            }
         }
     }
 
