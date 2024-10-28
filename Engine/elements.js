@@ -288,9 +288,13 @@ class Dynamic extends StaticObject
 
     collideWith(target)
     {
-        const sides = rect.hitbox.areSidesCollidingWith(rect2.hitbox);
-        
-        
+        if (this.hitbox.isCollidingWith(target.hitbox))
+        {
+            this.t.x = this.hitbox.t.x;
+            this.t.y = this.hitbox.t.y;
+            return true;
+        }
+        return false;
     }
 
     

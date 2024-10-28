@@ -11,6 +11,125 @@ class RectCollider
         this.type = "rect";
     }
 
+    repositionR({x,y,w,h,o})
+    {
+        switch(true)
+        {
+            case this.parent.v.x < 0:
+            {
+                this.t.x = x+w + w*o.x;
+
+                return;
+            }
+            case this.parent.v.x > 0:
+            {
+                this.parent.t.x = x-w + w*o.x;
+
+                return;
+            }
+
+            case this.parent.v.y < 0:
+            {
+                this.t.y = y-h + h*o.y;
+
+                return;
+            }
+            case this.parent.v.y > 0:
+            {
+                this.t.y = y+h + h*o.y;
+
+                return;
+            }
+        }
+    }
+    repositionC(target)
+    {
+        const cx = target.center.x, cy = target.center.y;
+        const r = target.t.w/2;
+
+        const left = this.t.x + this.t.w*this.t.o;
+        const right = this.t.x + this.t.w + this.t.w*this.t.o;
+        const top = this.t.y + this.t.h*this.t.o.y;
+        const bottom = this.t.y + this.t.h + this.t.h*this.t.o.y;
+
+        switch(true)
+        {
+            case (this.parent.v.x != 0 && top <= cy - r && bottom >= cy + r):
+            {
+                this.repositionR(target.t);
+                return;
+            }
+            case (this.parent.v.y != 0 && left >= cx - r && right <= cy + r):
+            {
+                this.repositionR(target.t);
+                return;
+            }
+        }
+
+        let vx = false;
+        let vy = false;
+        switch(true)
+        {
+            case this.parent.v.x < 0:
+            {
+                vx = -1;
+
+                break;
+            }
+            case this.parent.v.x > 0:
+            {
+                vx = 1;
+
+                break;
+            }
+        }
+
+        switch(true)
+        {
+            case this.parent.v.y < 0:
+            {
+                vy = -1;
+
+                break;
+            }
+            case this.parent.v.y > 0:
+            {
+                vy = 1;
+
+                break;
+            }
+        }
+
+        if (vx != false && vy != false)
+        {
+            // todo
+
+            return;
+        }
+        if (vx != false)
+        {
+            switch(true)
+            {
+                case top >= cy:
+                {
+                    console.log(this.t.x)
+                    this.t.x = Math.sqrt((r*vx)**2-(top - cy)**2) + cx - (this.t.w + this.t.w*this.t.o.x)*(vx == 1 ? 2 : 0);
+                    console.log(this.t.x)
+                    return;
+                }
+                case bottom <= cy:
+                {
+                    this.t.x =  Math.sqrt((r)**2-(bottom-cy)**2)*vx + cx - (this.t.w + this.t.w*this.t.o.x)*(vx == 1 ? 1 : 0);
+                    return;
+                }
+            }
+        }
+        if (vy != false)
+        {
+
+        }
+    }
+
     RRCollision(target, {l,r,t,b})
     {
         if (this.sides.r && !l)
@@ -36,14 +155,20 @@ class RectCollider
         {
             if (target.type == "rect")
             {
-                if (this.sides != _NOCOLLISION)
-                    return this.compileSides(this.RRCollision(target, {l,r,t,b}));
+                if (this.sides != _NOCOLLISION && this.compileSides(this.RRCollision(target, {l,r,t,b})))
+                {
+                    this.repositionR(target.t);
+                    return true;
+                }
                 return false;
             }
             if (target.type == "circle")
             {
-                if (this.sides != _NOCOLLISION)
-                    return this.compileSides(this.rectCircle(target, this.sides));
+                if (this.sides != _NOCOLLISION && this.compileSides(this.rectCircle(target, this.sides)))
+                {
+                    this.repositionC(target);
+                    return true;
+                }
                 return false;
             }
         }
@@ -175,6 +300,25 @@ class RectCollider
         this.oldt = this.parent.oldt;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class CircleCollider
 {
