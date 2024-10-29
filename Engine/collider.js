@@ -349,14 +349,128 @@ class CircleCollider
         this.center = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
     }
 
+    repositionR(target)
+    {
+        const x = target.t.x;
+        const y = target.t.y;
+        const w = target.t.w;
+        const h = target.t.h;
+        const o = target.t.o;
+        const cx = this.center.x, cy = this.center.y;
+        const r = this.t.w/2;
+
+        const left = x + w*o.x;
+        const right = x + w + w*o.x;
+        const top = y + h*o.y;
+        const bottom = y + h + h*o.y;
+
+        // switch(true)
+        // {
+        //     case (this.parent.v.x != 0 && top <= cy && bottom >= cy):
+        //     {
+        //         this.repositionR(target.t);
+        //         return;
+        //     }
+        //     case (this.parent.v.y != 0 && left <= cx && right >= cx):
+        //     {
+        //         this.repositionR(target.t);
+        //         return;
+        //     }
+        // }
+
+        let vx = false;
+        let vy = false;
+        switch(true)
+        {
+            case this.parent.v.x < 0:
+            {
+                vx = -1;
+
+                break;
+            }
+            case this.parent.v.x > 0:
+            {
+                vx = 1;
+
+                break;
+            }
+        }
+
+        switch(true)
+        {
+            case this.parent.v.y < 0:
+            {
+                vy = -1;
+
+                break;
+            }
+            case this.parent.v.y > 0:
+            {
+                vy = 1;
+
+                break;
+            }
+        }
+
+        if (vx != false && vy != false)
+        {
+            // todo
+
+            return;
+        }
+        if (vx != false)
+        {
+            switch(true)
+            {
+                case top >= cy:
+                {
+                    point.t.x = Math.sqrt((r)**2-(top-cy)**2)*-vx + (vx == -1 ? right : left);
+                    point.t.y = cy;
+                    this.center.x = Math.sqrt((r)**2-(top-cy)**2)*-vx + (vx == -1 ? right : left);
+                    return;
+                }
+                case bottom <= cy:
+                {
+                    point.t.x = Math.sqrt((r)**2-(bottom-cy)**2)*-vx + (vx == -1 ? right : left);
+                    point.t.y = cy;
+                    this.center.x = Math.sqrt((r)**2-(bottom-cy)**2)*-vx + (vx == -1 ? right : left);
+                    return;
+                }
+            }
+        }
+        if (vy != false)
+        {
+            switch(true)
+            {
+                case left >= cx:
+                {
+                    point.t.x = left;
+                    point.t.y = Math.sqrt((r)**2-(left-cx)**2)*vy + cy;
+                    this.t.y = Math.sqrt((r)**2-(left-cx)**2)*vy + cy - (this.t.h)*(vy == -1 ? 1 : 0) - this.t.h*this.t.o.y;
+                    return;
+                }
+                case right <= cx:
+                {
+                    point.t.x = right;
+                    point.t.y = Math.sqrt((r)**2-(right-cx)**2)*vy + cy;
+                    this.t.y = Math.sqrt((r)**2-(right-cx)**2)*vy + cy - (this.t.h)*(vy == -1 ? 1 : 0) - this.t.h*this.t.o.y;
+                    return;
+                }
+            }
+        }
+    }
+
     isCollidingWith(target)
     {
         if (target != undefined)
         {
             if (target.type == "rect")
             {
-                if (target.sides != _NOCOLLISION)
-                    return this.circleRect(target.t, target.sides);
+                if (target.sides != _NOCOLLISION && this.circleRect(target.t, target.sides))
+                {
+                    this.repositionR(target);
+                    return true;
+                }
                 return false;
             }
             if (target.type == "circle")
