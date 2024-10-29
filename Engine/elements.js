@@ -112,13 +112,13 @@ class StaticObject
         {
             case "rect":
             {
-                rr.drawRect(ctx, this.t, this.c);
+                rr.drawRect(ctx, this.t, this.c, this.alpha);
                 break;
             }
 
             case "circle":
             {
-                rr.drawCircle(ctx, this.center, this.t.w / 2, this.c);
+                rr.drawCircle(ctx, this.center, this.t.w / 2, this.c, this.alpha);
                 break;
             }
 
