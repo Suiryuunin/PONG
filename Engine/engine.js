@@ -32,7 +32,7 @@ class Engine
         window.addEventListener("keydown", (e) => {
             if (e.code == "Digit9" && this.fps > 1)
             {
-                this.fps-=10;
+                this.fps--;
             }
             if (e.code == "Digit0" && this.fps < this.fpsCap)
             {

@@ -1,5 +1,9 @@
 const canvas = document.querySelector("canvas");
 
+let _DSKEYS = ["BracketLeft", "BracketRight"];
+let _PDOWNSCALE = 1;
+let _DOWNSCALE = 1;
+
 class Renderer
 {
     "use strict";
@@ -17,21 +21,22 @@ class Renderer
         this.shakeStr = 8;
         this.stacks = 0;
         this.camShake = 0;
-        this.downscale = 1;
 
         addEventListener("keydown", (e) =>
         {
             switch(e.code)
             {
-                case "BracketLeft":
-                    this.downscale--;
-                    if (this.downscale < 1)
-                        this.downscale = 1;
+                case _DSKEYS[0]:
+                    _PDOWNSCALE = _DOWNSCALE;
+                    _DOWNSCALE--;
+                    if (_DOWNSCALE < 1)
+                        _DOWNSCALE = 1;
                     this.resize(window.innerWidth, window.innerHeight, res.h/res.w);
                     this.render();
                     break;
-                case "BracketRight":
-                    this.downscale++;
+                case _DSKEYS[1]:
+                    _PDOWNSCALE = _DOWNSCALE;
+                    _DOWNSCALE++;
                     this.resize(window.innerWidth, window.innerHeight, res.h/res.w);
                     this.render();
                     break;
@@ -180,15 +185,15 @@ class Renderer
     {
         if (h / w > ratio)
         {
-            this.display.canvas.height = Math.ceil(w * ratio/this.downscale);
-            this.display.canvas.width =  Math.ceil(w/this.downscale);
+            this.display.canvas.height = Math.ceil(w * ratio);
+            this.display.canvas.width =  Math.ceil(w);
         }
         else
         {
-            this.display.canvas.height = Math.ceil(h/this.downscale);
-            this.display.canvas.width =  Math.ceil(h / ratio/this.downscale);
+            this.display.canvas.height = Math.ceil(h);
+            this.display.canvas.width =  Math.ceil(h / ratio);
         }
-        this.canvas.style.transform = "translate(-50%, -50%)scale("+this.downscale+"00%)";
+        // this.canvas.style.transform = "translate(-50%, -50%)scale("+_DOWNSCALE+"00%)";
     }
 
     render()
@@ -197,7 +202,7 @@ class Renderer
 
         this.display.drawImage(currentCtx.canvas,
             0, 0,
-            currentCtx.canvas.width, currentCtx.canvas.height,
+            Math.floor(currentCtx.canvas.width/*/_DOWNSCALE*/), Math.floor(currentCtx.canvas.height/*/_DOWNSCALE*/),
             0, 0,
             this.display.canvas.width, this.display.canvas.height);
     }

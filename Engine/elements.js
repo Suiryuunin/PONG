@@ -295,6 +295,7 @@ class Dynamic extends StaticObject
         {
             this.t.x = this.hitbox.t.x;
             this.t.y = this.hitbox.t.y;
+            this.center = {x:this.t.x + this.t.w*this.t.o.x + this.t.w/2, y:this.t.y + this.t.h*this.t.o.y + this.t.h/2};
             return true;
         }
         return false;
