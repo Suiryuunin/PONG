@@ -50,6 +50,18 @@ class Renderer
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     }
 
+    drawLine(ctx, {x1,y1}, {x2,y2})
+    {
+        // Start a new Path
+        ctx.beginPath();
+        ctx.strokeStyle = "hotpink";
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+
+        // Draw the Path
+        ctx.stroke();
+    }
+
     measureWordWidth(ctx, word, size = 16)
     {
         ctx.font = `${size}px ${this.font}`;

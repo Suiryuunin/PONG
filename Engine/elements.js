@@ -289,9 +289,9 @@ class Dynamic extends StaticObject
             this.updateMore();
     }
 
-    collideWith(target)
+    collideWith(target, rR = undefined, rRR = undefined)
     {
-        if (this.hitbox.isCollidingWith(target.hitbox))
+        if (this.hitbox.isCollidingWith(target.hitbox, rR, rRR))
         {
             this.t.x = this.hitbox.t.x;
             this.t.y = this.hitbox.t.y;

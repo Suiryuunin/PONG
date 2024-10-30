@@ -11,30 +11,30 @@ class RectCollider
         this.type = "rect";
     }
 
-    repositionR({x,y,w,h,o})
+    repositionR({x,y,w,h,o}, {l,r,t,b})
     {
         switch(true)
         {
-            case this.parent.v.x < 0:
+            case this.parent.v.x < 0 && l:
             {
                 this.t.x = (x+w+w*o.x)-this.t.w*this.t.o.x;
 
                 return;
             }
-            case this.parent.v.x > 0:
+            case this.parent.v.x > 0 && r:
             {
                 this.parent.t.x = (x+w*o.x)-this.t.w - this.t.w*this.t.o.x;
 
                 return;
             }
 
-            case this.parent.v.y < 0:
+            case this.parent.v.y < 0 && b:
             {
                 this.t.y = (y+h*o.y)-this.t.h - this.t.h*this.t.o.y;
 
                 return;
             }
-            case this.parent.v.y > 0:
+            case this.parent.v.y > 0 && t:
             {
                 this.t.y = (y+h+h*o.y)-this.t.h*this.t.o.y;
 
@@ -173,9 +173,10 @@ class RectCollider
         {
             if (target.type == "rect")
             {
-                if (this.sides != _NOCOLLISION && this.compileSides(this.RRCollision(target, {l,r,t,b})))
+                let tsides = {};
+                if (this.sides != _NOCOLLISION && this.compileSides(tsides = this.RRCollision(target, {l,r,t,b})))
                 {
-                    this.repositionR(target.t);
+                    this.repositionR(target.t, tsides);
                     return true;
                 }
                 return false;
@@ -349,30 +350,106 @@ class CircleCollider
         this.center = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
     }
 
-    repositionRR({x,y,w,h,o})
+    collideTop({x,y,w,h,o})
+    {
+        const _o = this.t.h * this.t.o.y;
+        const _x = this.t.x + this.t.w * this.t.o.x, _y = this.t.y + _o;
+        const oldy = this.oldt.y + _o;
+        const __x = x + w * o.x, __y = y + h * o.y;
+
+        if (_x+this.t.w >= __x   &&
+            _x          <= __x+w &&
+            _y          <= __y+h &&
+            oldy        >= __y+h)
+            return true;
+        
+        return false;
+    }
+    collideBottom({x,y,w,h,o})
+    {
+        const _o = this.t.h * this.t.o.y;
+        const _x = this.t.x + this.t.w * this.t.o.x, _y = this.t.y + _o;
+        const oldy = this.oldt.y + _o;
+        const __x = x + w * o.x, __y = y + h * o.y;
+        
+        if (_x+this.t.w   >= __x   &&
+            _x            <= __x+w &&
+            _y+this.t.h   >= __y   &&
+            oldy+this.t.h <= __y)
+            return true;
+        
+        if (this.grounded != undefined)
+            this.grounded = false;
+        return false;
+    }
+    collideLeft({x,y,w,h,o})
+    {
+        const _o = this.t.w * this.t.o.x;
+        const _x = this.t.x + _o, _y = this.t.y + this.t.h * this.t.o.y;
+        const oldx = this.oldt.x + _o;
+        const __x = x + w * o.x, __y = y + h * o.y;
+
+        if (_x          <= __x+w &&
+            oldx        >= __x+w &&
+            _y+this.t.h >= __y   &&
+            _y          <= __y+h)
+            return true;
+        
+        return false;
+    }
+    collideRight({x,y,w,h,o})
+    {
+        const _o = this.t.w * this.t.o.x;
+        const _x = this.t.x + _o, _y = this.t.y + this.t.h * this.t.o.y;
+        const oldx = this.oldt.x + _o;
+        const __x = x + w * o.x, __y = y + h * o.y;
+
+        if (_x+this.t.w   >= __x   &&
+            oldx+this.t.w <= __x   &&
+            _y+this.t.h   >= __y   &&
+            _y            <= __y+h)
+            return true;
+        
+        return false;
+    }
+    RRCollision(target)
+    {
+        return {
+            l: this.collideLeft(target.t),
+            r: this.collideRight(target.t),
+            t: this.collideTop(target.t),
+            b: this.collideBottom(target.t)
+        }
+    }
+    compileSides({l,r,t,b})
+    {
+        return (l+r+t+b) > 0;
+    }
+
+    repositionRR({x,y,w,h,o}, {l,r,t,b})
     {
         switch(true)
         {
-            case this.parent.v.x < 0:
+            case this.parent.v.x < 0 && l:
             {
                 this.t.x = (x+w+w*o.x)-this.t.w*this.t.o.x;
 
                 return;
             }
-            case this.parent.v.x > 0:
+            case this.parent.v.x > 0 && r:
             {
                 this.parent.t.x = (x+w*o.x)-this.t.w - this.t.w*this.t.o.x;
 
                 return;
             }
 
-            case this.parent.v.y < 0:
+            case this.parent.v.y < 0 && b:
             {
                 this.t.y = (y+h*o.y)-this.t.h - this.t.h*this.t.o.y;
 
                 return;
             }
-            case this.parent.v.y > 0:
+            case this.parent.v.y > 0 && t:
             {
                 this.t.y = (y+h+h*o.y)-this.t.h*this.t.o.y;
 
@@ -380,7 +457,7 @@ class CircleCollider
             }
         }
     }
-    repositionR(target)
+    repositionR(target, rR = undefined, rRR = undefined)
     {
         const x = target.t.x;
         const y = target.t.y;
@@ -399,12 +476,18 @@ class CircleCollider
         {
             case (this.parent.v.x != 0 && top <= cy && bottom >= cy):
             {
-                this.repositionRR(target.t);
+                let tsides = {};
+                this.repositionRR(target.t, tsides = this.RRCollision(target));
+                if (rRR != undefined) rRR(tsides);
+                
                 return;
             }
             case (this.parent.v.y != 0 && left <= cx && right >= cx):
             {
-                this.repositionRR(target.t);
+                let tsides = {};
+                this.repositionRR(target.t, tsides = this.RRCollision(target));
+                if (rRR != undefined) rRR(tsides);
+
                 return;
             }
         }
@@ -445,9 +528,34 @@ class CircleCollider
 
         if (vx != false && vy != false)
         {
-            // todo
+            const h = vx == -1 ? right : left;
+            const k = vy == -1 ? top : bottom;
+            const a = -this.parent.v.y/this.parent.v.x;
+            const k2 = this.center.y - a*this.center.x;
+
+            yy1 = k2;
+            xx2 = res.w;
+            yy2 = res.w*a+k2;
+
+            const x1 = (Math.sqrt(a**2 * (r**2-h**2) + k2*(2*k-2*a*h) + 2*a*h*k - k2**2 - k**2 + r**2) - a*k2 + a*k + h)/(a**2 + 1);
+            const x2 = (-Math.sqrt(a**2 * (r**2-h**2) + k2*(2*k-2*a*h) + 2*a*h*k - k2**2 - k**2 + r**2) - a*k2 + a*k + h)/(a**2 + 1);
+            point.t.x = x1;
+            point.t.y = x1*a + k2;
+            point2.t.x = x2;
+            point2.t.y = x2*a + k2;
+
+            circle1.t.x = x1;
+            circle1.t.y = x1*a + k2;
+            circle2.t.x = x2;
+            circle2.t.y = x2*a + k2;
+
+            this.t.x = (vx == -1 ? x1 : x2) - r - this.t.w*this.t.o.x;
+            this.t.y = (vx == -1 ? x1*a + k2 : x2*a + k2) - r - this.t.w*this.t.o.x;
+            // ball.v.x = 0;ball.v.y = 0;
+            if (rR != undefined) rR();
             return;
         }
+        
         if (vx != false)
         {
             switch(true)
@@ -458,6 +566,8 @@ class CircleCollider
                     point.t.y = cy;
                     this.t.x = Math.sqrt(r**2-(cy-top)**2)*-vx + (vx == -1 ? right : left) - r - this.t.w*this.t.o.x;
                     
+                    if (rR != undefined) rR();
+
                     return;
                 }
                 case bottom <= cy:
@@ -465,6 +575,9 @@ class CircleCollider
                     point.t.x = Math.sqrt(r**2-(cy-bottom)**2)*-vx + (vx == -1 ? right : left);
                     point.t.y = cy;
                     this.t.x = Math.sqrt(r**2-(cy-bottom)**2)*-vx + (vx == -1 ? right : left) - r - this.t.w*this.t.o.x;
+
+                    if (rR != undefined) rR();
+
                     return;
                 }
             }
@@ -478,6 +591,9 @@ class CircleCollider
                     point.t.x = left;
                     point.t.y = Math.sqrt(r**2-(left-cx)**2)*vy + cy;
                     this.t.y = Math.sqrt(r**2-(left-cx)**2)*vy + (vy == -1 ? top : bottom) - r - this.t.h*this.t.o.y;
+
+                    if (rR != undefined) rR();
+
                     return;
                 }
                 case right <= cx:
@@ -485,13 +601,16 @@ class CircleCollider
                     point.t.x = right;
                     point.t.y = Math.sqrt(r**2-(right-cx)**2)*vy + cy;
                     this.t.y = Math.sqrt(r**2-(right-cx)**2)*vy + (vy == -1 ? top : bottom) - r - this.t.h*this.t.o.y;
+
+                    if (rR != undefined) rR();
+
                     return;
                 }
             }
         }
     }
 
-    isCollidingWith(target)
+    isCollidingWith(target, rR = undefined, rRR = undefined)
     {
         if (target != undefined)
         {
@@ -499,7 +618,7 @@ class CircleCollider
             {
                 if (target.sides != _NOCOLLISION && this.circleRect(target.t, target.sides))
                 {
-                    this.repositionR(target);
+                    this.repositionR(target, rR, rRR);
                     return true;
                 }
                 return false;

@@ -30,12 +30,14 @@ class Scene
         return this.elements.size();
     }
 
-    collisionsWith(object, callback)
+    collisionsWith(object, callback = undefined, rR = undefined, rRR = undefined)
     {
         this.elements.callNodeMethods((obj) =>
         {
-            if (!(object === obj) && object.collideWith(obj))
-                callback();
+            if (!(object === obj) && object.collideWith(obj, rR, rRR))
+            {
+                if (callback != undefined) callback();
+            }
         });
     }
 
