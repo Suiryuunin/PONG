@@ -291,7 +291,7 @@ class Dynamic extends StaticObject
 
     collideWith(target, rR = undefined, rRR = undefined)
     {
-        if (this.hitbox.isCollidingWith(target.hitbox, rR, rRR))
+        if (this.hitbox.isCollidingWith(target.hitbox, {l:false, r:false, t:false, b:false}, rR, rRR))
         {
             this.t.x = this.hitbox.t.x;
             this.t.y = this.hitbox.t.y;

@@ -8,9 +8,9 @@ const resize = () =>
 };
 
 
-const ball = new Dynamic("circle", {x:256,y:256,w:128,h:128, o: {x:-0.7,y:-0.7}}, "hotpink", new CircleCollider());
-const pad1 = new Dynamic("rect", {x:64,y:0,w:32,h:128, o: {x:0,y:0}}, "white", new RectCollider());
-const pad2 = new Dynamic("rect", {x:res.w-64,y:256,w:32,h:128, o: {x:-1,y:0}}, "white", new RectCollider());
+const ball = new Dynamic("circle", {x:res.w/2,y:res.h/2,w:32,h:32, o: {x:-0.5,y:-0.5}}, "hotpink", new CircleCollider());
+const pad1 = new Dynamic("rect", {x:res.w-64,y:res.h/2,w:32,h:128, o: {x:-1,y:0}}, "white", new RectCollider());
+const pad2 = new Dynamic("rect", {x:64,y:256,w:32,h:128, o: {x:0,y:0}}, "white", new RectCollider());
 const EDGEL = new Dynamic("rect", {x:0,    y:0,w:4,h:res.h, o: {x:0,y:0}},  "white", new RectCollider());
 const EDGER = new Dynamic("rect", {x:res.w,y:0,w:4,h:res.h, o: {x:-1,y:0}}, "white", new RectCollider());
 const EDGET = new Dynamic("rect", {x:0,y:0,    w:res.w,h:4, o: {x:0,y:0}},  "white", new RectCollider());
@@ -26,7 +26,7 @@ circle2.alpha = 0.5;
 SCENE.init(point);
 SCENE.addBulk([point2, circle1, circle2, ball, pad1, pad2, EDGEL, EDGER, EDGET, EDGEB]);
 
-ball.v.x = -512;
+ball.v.x = 1024;
 ball.v.y = 512;
 let my = 0;
 
@@ -55,6 +55,12 @@ const update = () =>
     pad2.t.y = ball.center.y - pad2.t.h*pad2.t.o.y - pad2.t.h/2
     SCENE.update();
 
+    if (pad1.t.y <= EDGET.t.h)
+    {
+        pad1.v.y = 0;
+        pad1.t.y = EDGET.t.h;
+    }
+
     SCENE.collisionsWith (
         ball, undefined,
         () => {
@@ -62,7 +68,7 @@ const update = () =>
             ball.v.y *= -1;
             
             aa = -ball.v.y/ball.v.x;
-            kk = ball.hitbox.center.y - aa*ball.hitbox.center.x;
+            kk = ball.t.y - aa*ball.t.x;
             xxx1 = 0;
             yyy1 = kk;
             xxx2 = res.w;
@@ -79,13 +85,12 @@ const update = () =>
                     ball.v.y *= -1;
                     break;
             }
-            
-            aa = -ball.v.y/ball.v.x;
-            kk = ball.hitbox.center.y - aa*ball.hitbox.center.x;
-            xxx1 = 0;
-            yyy1 = kk;
-            xxx2 = res.w;
-            yyy2 = res.w*aa+kk;
+            // aa = -ball.v.y/ball.v.x;
+            // kk = ball.hitbox.center.y - aa*ball.hitbox.center.x;
+            // xxx1 = 0;
+            // yyy1 = kk;
+            // xxx2 = res.w;
+            // yyy2 = res.w*aa+kk;
         },
     )
 };
@@ -108,6 +113,7 @@ const render = () =>
     SCENE.render();
     rr.drawLine(currentCtx, {x1:xx1, y1:yy1}, {x2:xx2, y2:yy2});
     rr.drawLine(currentCtx, {x1:xxx1, y1:yyy1}, {x2:xxx2, y2:yyy2});
+    rr.drawLine(currentCtx, {x1:ball.center.x, y1:ball.center.y}, {x2:ball.oldcenter.x, y2:ball.oldcenter.y}, "green");
 
     rr.render();
 };
