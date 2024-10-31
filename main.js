@@ -85,12 +85,12 @@ const update = () =>
     SCENE.collisionsWith (
         ball, undefined,
         (target) => {
-            target.parent.c = "red"
+            target.parent.red = 0;
             ball.v.x *= -1;
             ball.v.y *= -1;
         },
         (target, tsides) => {
-            target.parent.c = "red"
+            target.parent.red = 0;
             switch(true)
             {
                 case tsides.l: case tsides.r:

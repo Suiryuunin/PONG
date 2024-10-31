@@ -47,6 +47,7 @@ class StaticObject
         this.ot = {x:x,y:y,w:w,h:h,o:o};
         this.c = c;
         this.oc = c;
+        this.red = 255;
         this.ro = {x:0,y:0};
         this.hovering = false;
         this.visible = true;
@@ -274,6 +275,11 @@ class Dynamic extends StaticObject
 
     update()
     {
+        // *special for pong
+        if (this.red > 255) this.red = 255;
+        this.c = `#ff${(this.red*1).toString(16).length < 2 ? "0"+(this.red*1).toString(16) : (this.red*1).toString(16)}${(this.red*1).toString(16).length < 2 ? "0"+(this.red*1).toString(16) : (this.red*1).toString(16)}`;
+        if (this.red < 255) this.red+=8;
+
         if (this.hitbox)
             this.hitbox.parent = this;
         this.setOldTransform();
