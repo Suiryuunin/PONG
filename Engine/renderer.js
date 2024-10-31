@@ -50,14 +50,17 @@ class Renderer
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     }
 
-    drawLine(ctx, {x1,y1}, {x2,y2}, color = "hotpink")
+    drawLine(ctx, {x1,y1}, {x2,y2}, color = "hotpink", alpha = 1, thickness = 4, lw = 1, vw = 0)
     {
         // Start a new Path
+        ctx.globalAlpha = alpha;
+        ctx.setLineDash([lw, vw]);
+        ctx.lineWidth = thickness
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
-
+        
         // Draw the Path
         ctx.stroke();
     }

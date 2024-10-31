@@ -45,7 +45,7 @@ class Engine
         this.run = (time) =>
         {
             this.time = time;
-            this.delta = (this.time - this.timeStamp)/2;
+            this.delta = (this.time - this.timeStamp)/1;
 
             if (this.delta >= 1000 / (this.fps + 4))
             {
@@ -53,7 +53,9 @@ class Engine
                 this.render();
 
                 TargetFPS.innerHTML = "Target FPS: "+this.fps.toFixed(2);
+                TargetFPS.style.color = this.fps > 24 ? "lightgreen" : "red";
                 LiveFPS.innerHTML = " Live FPS: "+(1000/this.delta).toFixed(2);
+                LiveFPS.style.color = (1000/this.delta) > 24 ? "lightgreen" : "red";
 
                 this.timeStamp = time;
 

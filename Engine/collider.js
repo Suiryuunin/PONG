@@ -179,7 +179,7 @@ class RectCollider
                 if (this.sides != _NOCOLLISION && this.compileSides(tsides = this.RRCollision(target, {l,r,t,b})))
                 {
                     this.repositionR(target.t, tsides);
-                    if (rRR != undefined) rRR(tsides);
+                    if (rRR != undefined) rRR(target, tsides);
                     return true;
                 }
                 return false;
@@ -486,7 +486,7 @@ class CircleCollider
             {
                 let tsides = {};
                 this.repositionRR(target.t, tsides = this.RRCollision(target));
-                if (rRR != undefined) rRR(tsides);
+                if (rRR != undefined) rRR(target, tsides);
                 
                 return;
             }
@@ -494,7 +494,7 @@ class CircleCollider
             {
                 let tsides = {};
                 this.repositionRR(target.t, tsides = this.RRCollision(target));
-                if (rRR != undefined) rRR(tsides);
+                if (rRR != undefined) rRR(target, tsides);
 
                 return;
             }
@@ -560,7 +560,7 @@ class CircleCollider
             this.t.x = (vx == -1 ? x1 : x2) - r - this.t.w*this.t.o.x;
             this.t.y = (vx == -1 ? x1*a + k2 : x2*a + k2) - r - this.t.w*this.t.o.x;
             // ball.v.x = 0;ball.v.y = 0;
-            if (rR != undefined) rR();
+            if (rR != undefined) rR(target);
             return;
         }
         
@@ -574,7 +574,7 @@ class CircleCollider
                     point.t.y = cy;
                     this.t.x = Math.sqrt(r**2-(cy-top)**2)*-vx + (vx == -1 ? right : left) - r - this.t.w*this.t.o.x;
                     
-                    if (rR != undefined) rR();
+                    if (rR != undefined) rR(target);
 
                     return;
                 }
@@ -584,7 +584,7 @@ class CircleCollider
                     point.t.y = cy;
                     this.t.x = Math.sqrt(r**2-(cy-bottom)**2)*-vx + (vx == -1 ? right : left) - r - this.t.w*this.t.o.x;
 
-                    if (rR != undefined) rR();
+                    if (rR != undefined) rR(target);
 
                     return;
                 }
@@ -600,7 +600,7 @@ class CircleCollider
                     point.t.y = Math.sqrt(r**2-(left-cx)**2)*vy + cy;
                     this.t.y = Math.sqrt(r**2-(left-cx)**2)*vy + (vy == -1 ? top : bottom) - r - this.t.h*this.t.o.y;
 
-                    if (rR != undefined) rR();
+                    if (rR != undefined) rR(target);
 
                     return;
                 }
@@ -610,7 +610,7 @@ class CircleCollider
                     point.t.y = Math.sqrt(r**2-(right-cx)**2)*vy + cy;
                     this.t.y = Math.sqrt(r**2-(right-cx)**2)*vy + (vy == -1 ? top : bottom) - r - this.t.h*this.t.o.y;
 
-                    if (rR != undefined) rR();
+                    if (rR != undefined) rR(target);
 
                     return;
                 }
@@ -626,7 +626,6 @@ class CircleCollider
             {
                 if (target.sides != _NOCOLLISION && this.circleRect(target.t, target.sides, rRR, target))
                 {
-                    console.log(this.LineChecked);
                     if (this.LineChecked <= 1) this.repositionR(target, rR, rRR);
                     return true;
                 }
@@ -658,7 +657,7 @@ class CircleCollider
                 if (this.compileSides(tsides = this.RRCollision(target, {l,r,t,b})))
                 {
                     this.repositionRR(target.t, tsides);
-                    if (rRR != undefined) rRR(tsides);
+                    if (rRR != undefined) rRR(target, tsides);
                     this.LineChecked = 2;
                     return true;
                 }
