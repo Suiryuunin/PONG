@@ -86,11 +86,13 @@ const update = () =>
         ball, undefined,
         (target) => {
             target.parent.red = 0;
+            ball.red = 0;
             ball.v.x *= -1;
             ball.v.y *= -1;
         },
         (target, tsides) => {
             target.parent.red = 0;
+            ball.red = 0;
             switch(true)
             {
                 case tsides.l: case tsides.r:
