@@ -55,7 +55,7 @@ class Settings {
 
 class Slider {
 
-    constructor(setting, x, y, width, height, display, value = 0, minMax, valueOffset = 0, alpha = 1) {
+    constructor(setting, x, y, w, h, rr, value = 0, minMax, valueOffset = 0, alpha = 1) {
 
         this.type = "slider";
 
@@ -63,12 +63,13 @@ class Slider {
 
         this.x = x + 60;
         this.y = y;
-        this.barX = x + Math.floor(width / 2);
-        this.barY = y + Math.floor(height / 2);
-        this.fixedPos = [this.x + width / 2, this.y];
-        this.width = width;
-        this.height = height;
-        this.display = display;
+        this.barX = x + Math.floor(w / 2);
+        this.barY = y + Math.floor(h / 2);
+        this.fixedPos = [this.x + w / 2, this.y];
+        this.w = w;
+        this.h = h;
+        this.o = {x:0,y:0};
+        this.rr = rr;
         this.value = value;
         this.fake;
         this.minMax = minMax;
@@ -76,20 +77,20 @@ class Slider {
 
         this.alpha = alpha
 
-        this.barWidth = this.width + Math.floor(this.display.settings.canvas.width / 2) - 48;
+        this.barWidth = this.w + Math.floor(this.rr.settings.canvas.w / 2) - 48;
 
     }
 
     updatePos() {
 
-        this.display.createWord(this.display.settings, this.setting, 48, this.y - 5, 0, false, 1, 16, this.alpha);
+        this.rr.drawWord(this.rr.settings, this.setting, 48, this.y - 5, 0, false, 1, 16, this.alpha);
 
-        this.display.createRect(this.display.settings, this.x, this.y, this.width, this.height, this.display.color, 1, this.alpha);
-        this.display.createRect(this.display.settings, this.x, this.y, this.width, this.height, this.display.color, 1, this.alpha);
-        this.display.createRect(this.display.settings, this.fixedPos[0], this.fixedPos[1] + 3, this.barWidth, this.height - 6, this.display.color, 1, this.alpha);
+        this.rr.drawRect(this.rr.settings, {x:this.x,           y:this.y,               w:this.w,        h:this.h,     o:this.o}, this.rr.color, 1, this.alpha);
+        this.rr.drawRect(this.rr.settings, {x:this.x,           y:this.y,               w:this.w,        h:this.h,     o:this.o}, this.rr.color, 1, this.alpha);
+        this.rr.drawRect(this.rr.settings, {x:this.fixedPos[0], y:this.fixedPos[1] + 3, w:this.barWidth, h:this.h - 6, o:this.o}, this.rr.color, 1, this.alpha);
         
-        this.display.createWord(this.display.settings, (this.fake == undefined ? this.value : this.fake), 188, this.y - 5, -0.5, false, 1, 16, this.alpha);
-        this.display.createFill(this.display.settings, this.x, this.y, this.width, this.height, 0.5 - (1-this.alpha) / 2)
+        this.rr.drawWord(this.rr.settings, (this.fake == undefined ? [this.value] : [this.fake]), 188, this.y - 5, {x:-0.5,y:0}, false, 16, "white",this.alpha);
+        this.rr.drawFill(this.rr.settings, {x:this.x,           y:this.y,               w:this.w,        h:this.h,     o:this.o}, 0.5 - (1-this.alpha) / 2)
 
     }
 
@@ -97,7 +98,7 @@ class Slider {
 
 class Options {
 
-    constructor(setting, x, y, display, options, index = 0, offsetX = 0, alpha = 1) {
+    constructor(setting, x, y, rr, options, index = 0, offsetX = 0, alpha = 1) {
 
         this.type = "options";
 
@@ -108,13 +109,13 @@ class Options {
         this.fixedPos = [this.x, this.y];
         this.offsetX = offsetX;
 
-        this.display = display;
+        this.rr = rr;
         this.options = options;
         this.index = index;
 
-        this.display.settings.font = `16px MisterPixel`;
-        this.width = this.display.settings.measureText(this.options[this.index])["width"];
-        this.height = 16;
+        this.rr.settings.font = `16px MisterPixel`;
+        this.w = this.rr.settings.measureText(this.options[this.index])["w"];
+        this.h = 16;
 
         this.alpha = alpha
 
@@ -122,13 +123,13 @@ class Options {
 
     updatePos() {
 
-        this.display.settings.font = `16px MisterPixel`;
-        this.width = this.display.settings.measureText(this.options[this.index])["width"];
+        this.rr.settings.font = `16px MisterPixel`;
+        this.w = this.rr.settings.measureText(this.options[this.index])["w"];
 
-        this.x = this.fixedPos[0] + this.offsetX * this.width + 2;
+        this.x = this.fixedPos[0] + this.offsetX * this.w + 2;
 
-        this.display.createWord(this.display.settings, this.setting, 48, this.y, 0, false, 1, 16, this.alpha);
-        this.display.createWord(this.display.settings, this.options[this.index], this.fixedPos[0], this.y, this.offsetX, true, 1, 16, this.alpha);
+        this.rr.drawWord(this.rr.settings, this.setting, 48, this.y, 0, false, 1, 16, this.alpha);
+        this.rr.drawWord(this.rr.settings, this.options[this.index], this.fixedPos[0], this.y, this.offsetX, true, 1, 16, this.alpha);
 
     }
 
@@ -136,7 +137,7 @@ class Options {
 
 class Button {
 
-    constructor(x, y, display, text, offsetX = 0, enabled, pageChange) {
+    constructor(x, y, rr, text, offsetX = 0, enabled, pageChange) {
 
         this.type = "button";
 
@@ -148,11 +149,11 @@ class Button {
         this.offsetX = offsetX;
         this.enabled = enabled;
 
-        this.display = display;
+        this.rr = rr;
 
-        this.display.settings.font = `16px MisterPixel`;
-        this.width = this.display.settings.measureText(this.text)["width"];
-        this.height = 16;
+        this.rr.settings.font = `16px MisterPixel`;
+        this.w = this.rr.settings.measureText(this.text)["w"];
+        this.h = 16;
 
         this.action = () => {
 
@@ -165,7 +166,7 @@ class Button {
                 }
                 else
                 {
-                    document.getElementById('borderS').style.display = 'none';
+                    document.getElementById('borderS').style.rr = 'none';
                     
                     INIT();
                 }
@@ -178,12 +179,12 @@ class Button {
 
     updatePos() {
 
-        this.display.settings.font = `16px MisterPixel`;
-        this.width = this.display.settings.measureText(this.text)["width"];
+        this.rr.settings.font = `16px MisterPixel`;
+        this.w = this.rr.settings.measureText(this.text)["w"];
 
-        this.x = this.fixedPos[0] + this.offsetX * this.width + 2;
+        this.x = this.fixedPos[0] + this.offsetX * this.w + 2;
 
-        this.display.createWord(this.display.settings, this.text, this.fixedPos[0], this.y, this.offsetX, false, 1, 16, (this.enabled) ? 1 : 0.5);
+        this.rr.drawWord(this.rr.settings, this.text, this.fixedPos[0], this.y, this.offsetX, false, 1, 16, (this.enabled) ? 1 : 0.5);
 
     }
 

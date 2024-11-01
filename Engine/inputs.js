@@ -1,202 +1,34 @@
 let option = undefined;
 
-const keyDown = (e) => {
-
-    if (Math.floor(gameState) != 0 && !mobile) {
-
-        if ((e.key.length == 1 || (e.key == " " && !display.input.includes(" "))) && display.input.length < maxLetters) {
-    
-            if (display.input == "...")
-                display.input = "";
-
-            if (e.code == "Backquote")
-                display.input += "∞";
-            else if ( !(e.code == "Space" && (settings.check == 1 || settings.check == 2) ) || gameState == -1)
-                display.input += e.key;
-    
-        }
-    }
-    
-    if (Math.floor(gameState) != 0 && !mobile)
-    {
-        if (display.input != "...") {
-    
-            switch (e.code) {
-        
-                case "ControlLeft": case "ControlRight":
-                    ctrl = true;
-                    break;
-        
-                case "Backspace":
-
-                    display.input = display.input.substring(0, display.input.length - 1);
-
-                    if (ctrl) {
-                        if (display.input.includes(" ")) {
-                            
-                            display.input = display.input.split(" ")[0];
-        
-                        } else {
-        
-                            display.input = "";
-                            
-                        }
-                        
-                    }
-                    break;
-
-                case "Space":
-
-                    if ((settings.check != 0) && gameState != -1)
-                    {
-                        if (option == undefined)
-                            option = check();
-                        else
-                            check();
-
-                        display.input = "";
-                        if (mobile)
-                            input.value = "";
-                    }
-                    break;
-
-                case "Enter":
-
-                    if (settings.check != 1 || gameState == -1)
-                    {
-                        if (option == undefined)
-                            option = check();
-                        else
-                            check();
-
-                        display.input = "";
-                        if (mobile)
-                            input.value = "";
-                    }
-                    break;
-        
-            }
-    
-        }
-        
-        for (let i = 0; i < words.length; i++) {
-            if (words[i] != undefined) {
-                if (display.input == words[i].word.substring(0, display.input.length))
-                    words[i].overlay = display.input;
-                else
-                    words[i].overlay = '';
-            }
-        }
-
-    }
-
-    if (mobile)
-    {
-        switch (e.keyCode) {
-            
-            case 32:
-
-                if ((settings.check != 0) && gameState != -1)
-                {
-                    if (option == undefined)
-                        option = check();
-                    else
-                        check();
-
-                    display.input = "";
-                    if (mobile)
-                        input.value = "";
-                }
-                break;
-
-            case 13:
-
-                if (settings.check != 1 || gameState == -1)
-                {
-                    if (option == undefined)
-                        option = check();
-                    else
-                        check();
-
-                    display.input = "";
-                    if (mobile)
-                        input.value = "";
-                }
-                break;
-    
-        }
-    }
-
-}
-
-const keyUp = (e) => {
-
-    switch (e.code) {
-
-        case "ControlLeft": case "ControlRight":
-            ctrl = false;
-            break;
-
-        case "Escape":
-            switch(Math.floor(gameState)) {
-
-                case 1:
-                    gameState = 0 + lastPage;
-                    document.getElementById('borderS').style.display = 'block';
-
-                    break;
-
-                case 0:
-                    gameState = 1;
-                    document.getElementById('borderS').style.display = 'none';
-
-                    break;
-
-            }
-
-            if (
-                (
-                settings.old[0] != settings.text     ||
-                settings.old[1] != settings.genMode  ||
-                settings.old[2] != settings.gameMode ||
-                settings.old[3] != settings.words    ||
-                settings.old[4] != settings.maxChar) &&
-                gameState != -1                        )
-                setup();
-
-            break;
-
-    }
-
-}
+let mI = undefined;
 
 const mouseDown = (e) => {
 
     if (Math.floor(gameState) == 0)
-        mouseInput = new MouseInput(e);
+        mI = new MouseInput(e);
 
 }
 
 const mouseUp = () => {
 
     
-    if (mouseInput != undefined && mouseInput.element != undefined && mouseInput.element.alpha == 1 && mouseInput.element.type == "options") {
+    if (mI != undefined && mI.el != undefined && mI.el.alpha == 1 && mI.el.type == "options") {
 
-        mouseInput.element.index *= 1;
-        mouseInput.element.index = (mouseInput.element.index + 1) % mouseInput.element.options.length;
+        mI.el.index *= 1;
+        mI.el.index = (mI.el.index + 1) % mI.el.options.length;
         
-        if (mouseInput.element.changed === false)
-            mouseInput.element.changed = true;
+        if (mI.el.changed === false)
+            mI.el.changed = true;
 
     }
 
-    if (mouseInput != undefined && mouseInput.element != undefined && mouseInput.element.type == "button") {
+    if (mI != undefined && mI.el != undefined && mI.el.type == "button") {
 
-        mouseInput.element.action();
+        mI.el.action();
 
     }
 
-    mouseInput = undefined;
+    mI = undefined;
 
 }
 
@@ -208,8 +40,8 @@ class MouseInput {
 
         this.updateValue = function() {
 
-            if (this.element.type == "slider")
-                this.element.value = Math.ceil((this.element.x - (this.element.fixedPos[0] - Math.floor(this.element.width / 2))) / (this.element.barWidth / this.element.minMax[1])) + this.element.valueOffset;
+            if (this.el.type == "slider")
+                this.el.value = Math.ceil((this.el.x - (this.el.fixedPos[0] - Math.floor(this.el.width / 2))) / (this.el.barWidth / this.el.minMax[1])) + this.el.valueOffset;
 
         };
         
@@ -217,15 +49,15 @@ class MouseInput {
 
             for (let i = 0; i < page.length; i++) {
 
-                if ( page[i].alpha == 1 && page[i].type == "slider" && ((e.clientX - edge[0] > Math.floor((page[i].fixedPos[0] / 384 * 0.8 + 0.1) * display.display.canvas.width) && e.clientX - edge[0] < Math.floor(((page[i].fixedPos[0] + page[i].barWidth) / 384 * 0.8 + 0.1) * display.display.canvas.width)) && (e.clientY - edge[1] > Math.floor((page[i].fixedPos[1] / 288 * 0.8 + 0.1) * display.display.canvas.height) && e.clientY - edge[1] < Math.floor(((page[i].fixedPos[1] + page[i].height) / 288 * 0.8 + 0.1) * display.display.canvas.height))) ) {
+                if ( page[i].alpha == 1 && page[i].type == "slider" && ((e.clientX - edge[0] > Math.floor((page[i].fixedPos[0] / 384 * 0.8 + 0.1) * rr.canvas.width) && e.clientX - edge[0] < Math.floor(((page[i].fixedPos[0] + page[i].barWidth) / 384 * 0.8 + 0.1) * rr.canvas.width)) && (e.clientY - edge[1] > Math.floor((page[i].fixedPos[1] / 288 * 0.8 + 0.1) * rr.canvas.height) && e.clientY - edge[1] < Math.floor(((page[i].fixedPos[1] + page[i].height) / 288 * 0.8 + 0.1) * rr.canvas.height))) ) {
 
-                    page[i].x = Math.floor( Math.round( ( ( (((e.clientX - edge[0]) / display.display.canvas.width - 0.1) / 0.8 * 384) ) - page[i].fixedPos[0]) / (page[i].barWidth / page[i].minMax[1])) * (page[i].barWidth / page[i].minMax[1]) + page[i].fixedPos[0] - page[i].width / 2);
+                    page[i].x = Math.floor( Math.round( ( ( (((e.clientX - edge[0]) / rr.canvas.width - 0.1) / 0.8 * 384) ) - page[i].fixedPos[0]) / (page[i].barWidth / page[i].minMax[1])) * (page[i].barWidth / page[i].minMax[1]) + page[i].fixedPos[0] - page[i].width / 2);
                     return (page[i]);
 
                 }
 
 
-                if ((e.clientX - edge[0] > Math.floor((page[i].x / 384 * 0.8 + 0.1) * display.display.canvas.width) && e.clientX - edge[0] < Math.floor(((page[i].x + page[i].width) / 384 * 0.8 + 0.1) * display.display.canvas.width)) && (e.clientY - edge[1] > Math.floor((page[i].y / 288 * 0.8 + 0.1) * display.display.canvas.height) && e.clientY - edge[1] < Math.floor(((page[i].y + page[i].height) / 288 * 0.8 + 0.1) * display.display.canvas.height)))
+                if ((e.clientX - edge[0] > Math.floor((page[i].x / 384 * 0.8 + 0.1) * rr.canvas.width) && e.clientX - edge[0] < Math.floor(((page[i].x + page[i].width) / 384 * 0.8 + 0.1) * rr.canvas.width)) && (e.clientY - edge[1] > Math.floor((page[i].y / 288 * 0.8 + 0.1) * rr.canvas.height) && e.clientY - edge[1] < Math.floor(((page[i].y + page[i].height) / 288 * 0.8 + 0.1) * rr.canvas.height)))
                     return(page[i]);
 
                 
@@ -233,36 +65,35 @@ class MouseInput {
             
         };
         
-        this.element = this.getElement();
+        this.el = this.getElement();
 
-        if (this.element != undefined)
+        if (this.el != undefined)
             this.updateValue();
 
     }
     
     move(e) {
     
-        if (mouseInput != undefined && mouseInput.element != undefined && mouseInput.element.alpha == 1 && mouseInput.element.type == "slider") {
+        if (mI != undefined && mI.el != undefined && mI.el.alpha == 1 && mI.el.type == "slider") {
             
-            if (e.clientX - edge[0] > Math.floor((mouseInput.element.fixedPos[0] / 384 * 0.8 + 0.1) * display.display.canvas.width - (mouseInput.element.width / 2 - 4)) && e.clientX - edge[0] < Math.floor(((mouseInput.element.fixedPos[0] + mouseInput.element.barWidth) / 384 * 0.8 + 0.1) * display.display.canvas.width) )
-                mouseInput.element.x = Math.floor( Math.round( ( ( (((e.clientX - edge[0]) / display.display.canvas.width - 0.1) / 0.8 * 384) ) - mouseInput.element.fixedPos[0]) / (mouseInput.element.barWidth / mouseInput.element.minMax[1])) * (mouseInput.element.barWidth / mouseInput.element.minMax[1]) + mouseInput.element.fixedPos[0] - mouseInput.element.width / 2);
+            if (e.clientX - edge[0] > Math.floor((mI.el.fixedPos[0] / 384 * 0.8 + 0.1) * rr.canvas.width - (mI.el.width / 2 - 4)) && e.clientX - edge[0] < Math.floor(((mI.el.fixedPos[0] + mI.el.barWidth) / 384 * 0.8 + 0.1) * rr.canvas.width) )
+                mI.el.x = Math.floor( Math.round( ( ( (((e.clientX - edge[0]) / rr.canvas.width - 0.1) / 0.8 * 384) ) - mI.el.fixedPos[0]) / (mI.el.barWidth / mI.el.minMax[1])) * (mI.el.barWidth / mI.el.minMax[1]) + mI.el.fixedPos[0] - mI.el.width / 2);
 
 
-            if (e.clientX - edge[0] < Math.floor((mouseInput.element.fixedPos[0] / 384 * 0.8 + 0.1) * display.display.canvas.width - (mouseInput.element.width / 2 - 4)) )
-                mouseInput.element.x = mouseInput.element.fixedPos[0] - Math.floor(mouseInput.element.width / 2);
+            if (e.clientX - edge[0] < Math.floor((mI.el.fixedPos[0] / 384 * 0.8 + 0.1) * rr.canvas.width - (mI.el.width / 2 - 4)) )
+                mI.el.x = mI.el.fixedPos[0] - Math.floor(mI.el.width / 2);
 
-            if (e.clientX - edge[0] > Math.floor(((mouseInput.element.fixedPos[0] + mouseInput.element.barWidth) / 384 * 0.8 + 0.1) * display.display.canvas.width) )
-                mouseInput.element.x = mouseInput.element.fixedPos[0] + mouseInput.element.barWidth - Math.floor(mouseInput.element.width / 2);
+            if (e.clientX - edge[0] > Math.floor(((mI.el.fixedPos[0] + mI.el.barWidth) / 384 * 0.8 + 0.1) * rr.canvas.width) )
+                mI.el.x = mI.el.fixedPos[0] + mI.el.barWidth - Math.floor(mI.el.width / 2);
 
-            mouseInput.updateValue();
-            if (mouseInput.element.changed === false)
-                mouseInput.element.changed = true;
+            mI.updateValue();
+            if (mI.el.changed === false)
+                mI.el.changed = true;
         }
     
     }
 
 }
-let mouseInput = undefined;
 
 window.addEventListener("keydown", keyDown);
 window.addEventListener("keyup", keyUp);

@@ -11,8 +11,8 @@ class Renderer
     constructor(canvas)
     {
 
-        this.display = canvas.getContext("2d");
         this.canvas = canvas;
+        this.display = canvas.getContext("2d");
         
         this.settings = document.createElement("canvas").getContext("2d");
         
@@ -72,7 +72,7 @@ class Renderer
         return ctx.measureText(word)["width"];
     }
 
-    drawWord(ctx, {word, x, y, o = {x:0,y:0}, border = true, size = 16, color = this.color, alpha = 1, linesMargin = 1})
+    drawWord(ctx, word, x, y, o = {x:0,y:0}, border = true, size = 16, color = this.color, alpha = 1, linesMargin = 1)
     {
         ctx.globalAlpha = alpha;
         ctx.lineWidth = 1;

@@ -31,7 +31,7 @@ class Word
 
     render(ctx = currentCtx)
     {
-        rr.drawWord(ctx, {word:[this.word], x:this.t.x, y: this.t.y, o: this.t.o, border: false, size:this.t.h, color:this.c, alpha: this.alpha,linesMargin:this.t.h});
+        rr.drawWord(ctx, [this.word], this.t.x, this.t.y, this.t.o, false, this.t.h, this.c, this.alpha,this.t.h);
     }
 }
 

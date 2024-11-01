@@ -9,6 +9,8 @@ function toCanvasCoords(pageX, pageY)
     return {x, y};
 }
 
+let gameState = 1;
+
 const rr = new Renderer(canvas);
 
 let currentCtx = document.createElement("canvas").getContext("2d");
