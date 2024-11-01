@@ -63,6 +63,7 @@ class Renderer
         
         // Draw the Path
         ctx.stroke();
+        ctx.globalAlpha = 1;
     }
 
     measureWordWidth(ctx, word, size = 16)
@@ -95,7 +96,7 @@ class Renderer
         {
             ctx.strokeStyle = color;
             ctx.beginPath();
-            ctx.rect(x + Math.floor(w * o.x), y + o.y, w + 8, size * word.length);
+            ctx.rect(x + w * o.x, y + o.y, w + 8, size * word.length);
             ctx.stroke();
         }
         ctx.globalAlpha = 1;
@@ -143,6 +144,7 @@ class Renderer
 
         // restore the context to its untranslated/unrotated state
         ctx.restore();
+        ctx.globalAlpha = 1;
     }
 
     drawRect(ctx, {x, y, w, h, o}, color = this.color, alpha = 1, content = "fill", thickness = 1, color2)

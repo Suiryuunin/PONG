@@ -10,6 +10,12 @@
     src: url(Assets/VCR_OSD.ttf);
 }
 
+@font-face {
+    font-family: MisterPixel;
+    font-weight: bold;
+    src: url(Assets/MisterPixel.ttf);
+}
+
 canvas {
     position: absolute;
     top: 50%;

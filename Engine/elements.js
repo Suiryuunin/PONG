@@ -31,7 +31,7 @@ class Word
 
     render(ctx = currentCtx)
     {
-        rr.drawWord(ctx, {word:this.word, x:this.t.x, y: this.t.y, o: this.t.o, border: false, size:this.t.h, color:this.c, alpha: this.alpha,linesMargin:this.t.h});
+        rr.drawWord(ctx, {word:[this.word], x:this.t.x, y: this.t.y, o: this.t.o, border: false, size:this.t.h, color:this.c, alpha: this.alpha,linesMargin:this.t.h});
     }
 }
 
@@ -278,7 +278,7 @@ class Dynamic extends StaticObject
         // *special for pong
         if (this.red > 255) this.red = 255;
         this.c = `#ff${(this.red*1).toString(16).length < 2 ? "0"+(this.red*1).toString(16) : (this.red*1).toString(16)}${(this.red*1).toString(16).length < 2 ? "0"+(this.red*1).toString(16) : (this.red*1).toString(16)}`;
-        if (this.red < 255) this.red+=8;
+        if (this.red < 255) this.red+=Math.round(8/(1/30)*_DELTATIME);
 
         if (this.hitbox)
             this.hitbox.parent = this;

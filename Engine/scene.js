@@ -36,7 +36,7 @@ class Scene
         {
             if (!(object === obj) && object.collideWith(obj, rR, rRR))
             {
-                if (callback != undefined) callback();
+                if (callback != undefined) callback(obj);
             }
         });
     }

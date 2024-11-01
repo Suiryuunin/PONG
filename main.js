@@ -8,38 +8,57 @@ const resize = () =>
 };
 
 
+// UI
+
+let cpts1 = 0;
+const pts1 = new Word({x:res.w/2-64, y:64, h:128, o:{x:-1, y:-1}}, cpts1+"", "white");
+let cpts2 = 0;
+const pts2 = new Word({x:res.w/2+64, y:64, h:128, o:{x:0, y:-1}}, cpts2+"", "white");
+
+
 const ball = new Dynamic("circle", {x:res.w/2,y:res.h/2,w:32,h:32, o: {x:-0.5,y:-0.5}}, "red", new CircleCollider());
 
 const pad1 = new Dynamic("rect", {x:64,y:res.h/2-64,w:32,h:128, o: {x:0,y:0}}, "white", new RectCollider());
 const pad2 = new Dynamic("rect", {x:res.w-64,y:res.h/2-64,w:32,h:128, o: {x:-1,y:0}}, "white", new RectCollider());
 
-const EDGEL = new Dynamic("rect", {x:0,    y:0,w:4,h:res.h, o: {x:0,y:0}},  "white", new RectCollider());
-const EDGER = new Dynamic("rect", {x:res.w,y:0,w:4,h:res.h, o: {x:-1,y:0}}, "white", new RectCollider());
-const EDGET = new Dynamic("rect", {x:0,y:0,    w:res.w,h:4, o: {x:0,y:0}},  "white", new RectCollider());
-const EDGEB = new Dynamic("rect", {x:0,y:res.h,w:res.w,h:4, o: {x:0,y:-1}}, "white", new RectCollider());
+const EDGEL = new Dynamic("rect", {x:4,    y:0, w:res.w,h:res.h, o: {x:-1,y:0}},  "white", new RectCollider());
+const EDGER = new Dynamic("rect", {x:res.w-4,y:0,w:res.w,h:res.h, o: {x:0,y:0}}, "white", new RectCollider());
+const EDGET = new Dynamic("rect", {x:0,y:4,     w:res.w,h:res.h, o: {x:0,y:-1}},  "white", new RectCollider());
+const EDGEB = new Dynamic("rect", {x:0,y:res.h-4,w:res.w,h:res.h, o: {x:0,y:0}}, "white", new RectCollider());
+
+const DLHitbox = new Dynamic("rect", {x:res.w/2,y:0,w:16,h:res.h, o: {x:-0.5,y:0}}, "white", new RectCollider()); 
+DLHitbox.hitbox.reposition = false;
 
 const point = new Dynamic("circle", {x:0,y:-10,w:16,h:16, o: {x:-0.5,y:-0.5}}, "red");
 const point2 = new Dynamic("circle", {x:0,y:-10,w:16,h:16, o: {x:-0.5,y:-0.5}}, "green");
 const circle1 = new Dynamic("circle", {x:0,y:-10,w:ball.t.w,h:ball.t.h, o: {x:-0.5,y:-0.5}}, "yellow");
 const circle2 = new Dynamic("circle", {x:0,y:-10,w:ball.t.w,h:ball.t.h, o: {x:-0.5,y:-0.5}}, "yellow");
 
-point.alpha = 0;
-point2.alpha = 0;
+point.alpha   = 0;
+point2.alpha  = 0;
 circle1.alpha = 0;
 circle2.alpha = 0;
 
 SCENE.init(point);
 SCENE.addBulk([point2, circle1, circle2, ball, pad1, pad2, EDGEL, EDGER, EDGET, EDGEB]);
+SCENE.addBulk([pts1, pts2]);
 
 ball.v.x = 1024;
 ball.v.y = 512;
+
+//HARD CODED HELPERS ;-;
 let my = 0;
 
 let aa = 0;
 let kk = 0;
 
+let padSpeed = 64/(1/30);
+let lps = padSpeed * _DELTATIME;
+
 const update = () =>
 {
+    lps = padSpeed * _DELTATIME;
+
     switch (true)
     {
         case (keys["KeyW"] || keys["ArrowUp"]):
@@ -55,44 +74,68 @@ const update = () =>
             break;
     }
 
-    pad1.v.y += my != 0 ? 32*my : -32*Math.sign(pad1.v.y);
-    pad2.v.y += (ball.center.y > pad2.center.y ? -32 : (ball.center.y == pad2.center.y ? -pad2.v.y : 32));
+    pad1.v.y = my != 0 ? pad1.v.y + lps*my : (Math.abs(pad1.v.y)-lps >= 0 ? pad1.v.y-lps*Math.sign(pad1.v.y) : 0);
+    pad2.v.y += (ball.center.y > pad2.center.y ? -lps : (ball.center.y == pad2.center.y ? -pad2.v.y : lps));
 
     SCENE.update();
 
 
-    if (pad1.t.y <= EDGET.t.h)
+    if (pad1.t.y <= 4)
     {
         pad1.v.y = 0;
-        pad1.t.y = EDGET.t.h + pad1.t.h*pad1.t.o.y;
+        pad1.t.y = 4 + pad1.t.h*pad1.t.o.y;
     }
-    if (pad1.t.y >= res.h - EDGET.t.h - pad1.t.h + pad1.t.h*pad1.t.o.y)
+    if (pad1.t.y >= res.h - 4 - pad1.t.h + pad1.t.h*pad1.t.o.y)
     {
         pad1.v.y = 0;
-        pad1.t.y =  res.h - EDGET.t.h - pad1.t.h + pad1.t.h*pad1.t.o.y;
+        pad1.t.y =  res.h - 4 - pad1.t.h + pad1.t.h*pad1.t.o.y;
     }
-    if (pad2.t.y <= EDGET.t.h)
+    if (pad2.t.y <= 4)
     {
         pad2.v.y = 0;
-        pad2.t.y = EDGET.t.h + pad2.t.h*pad2.t.o.y;
+        pad2.t.y = 4 + pad2.t.h*pad2.t.o.y;
     }
-    if (pad2.t.y >= res.h - EDGET.t.h - pad2.t.h + pad2.t.h*pad2.t.o.y)
+    if (pad2.t.y >= res.h - 4 - pad2.t.h + pad2.t.h*pad2.t.o.y)
     {
         pad2.v.y = 0;
-        pad2.t.y =  res.h - EDGET.t.h - pad2.t.h + pad2.t.h*pad2.t.o.y;
+        pad2.t.y =  res.h - 4 - pad2.t.h + pad2.t.h*pad2.t.o.y;
     }
 
     SCENE.collisionsWith (
-        ball, undefined,
-        (target) => {
-            target.parent.red = 0;
+        ball, (target) => {
+            target.red = 0;
             ball.red = 0;
+
+            if (target === pad1 || target === pad2)
+                ball.v.y += target.v.y *0.4;
+
+            switch (target)
+            {
+                case EDGEL:
+                    cpts2++;
+                    pts2.word = cpts2+"";
+                    break;
+
+                case EDGER:
+                    cpts1++;
+                    pts1.word = cpts1+"";
+                    break;
+            }
+        },
+        (target) => {
+            
             ball.v.x *= -1;
             ball.v.y *= -1;
         },
-        (target, tsides) => {
-            target.parent.red = 0;
-            ball.red = 0;
+        (target, tsides, l = undefined, r = undefined, t = undefined, b = undefined) => {
+            if (l != undefined)
+            {
+                tsides.l = (ball.oldcenter.x < l);
+                tsides.r = (ball.oldcenter.x > r);
+                tsides.t = (ball.oldcenter.x < t);
+                tsides.b = (ball.oldcenter.x > b);
+            }
+
             switch(true)
             {
                 case tsides.l: case tsides.r:
@@ -103,23 +146,41 @@ const update = () =>
                     ball.v.y *= -1;
                     break;
             }
-            // aa = -ball.v.y/ball.v.x;
-            // kk = ball.hitbox.center.y - aa*ball.hitbox.center.x;
+            aa = -ball.v.y/ball.v.x;
+            kk = ball.hitbox.center.y - aa*ball.hitbox.center.x;
             xxx1 = 0;
             yyy1 = kk;
             xxx2 = res.w;
             yyy2 = res.w*aa+kk;
         },
-    )
+    );
+
+    if (ball.collideWith(DLHitbox))
+        dred = 0;
+
+    if (ball.t.x < 0 || ball.t.x > res.w || ball.t.y < 0 || ball.t.y > res.h)
+    {
+        ball.t.x = res.w/2;
+        ball.t.y = res.h/2;
+        ball.v.x = 1024;
+        ball.v.y = 512;
+    }
+
+    if (ball.t.x != ball.t.x || ball.t.y != ball.t.y)
+    {
+        ball.t.x = res.w/2;
+        ball.t.y = res.h/2;
+    }
             
-    aa = (ball.center.y-ball.oldcenter.y) / (ball.center.x-ball.oldcenter.x);
-    kk = ball.center.y-aa*ball.center.x;
+    // aa = (ball.center.y-ball.oldcenter.y) / (ball.center.x-ball.oldcenter.x);
+    // kk = ball.center.y-aa*ball.center.x;
     xxx1 = 0;
     yyy1 = kk;
     xxx2 = res.w;
     yyy2 = res.w*aa+kk;
 };
 
+// hard coded helpers (BLASPHEMEOUS!!!!!!!!)
 let xx1 = 0;
 let yy1 = 0;
 let xx2 = 0;
@@ -129,16 +190,25 @@ let xxx1 = 0;
 let yyy1 = 0;
 let xxx2 = 0;
 let yyy2 = 0;
+
+let dred = 255;
+let dcolor = "#ffffff";
 const render = () =>
 {
     rr.drawBackground(currentCtx, "black");
-    rr.drawLine(currentCtx, {x1:res.w/2, y1:64}, {x2:res.w/2, y2:res.h-32}, "red", 1, 16, 64, 64);
+
+    // *special for pong
+    if (dred > 255) dred = 255;
+    dcolor = `#ff${(dred*1).toString(16).length < 2 ? "0"+(dred*1).toString(16) : (dred*1).toString(16)}${(dred*1).toString(16).length < 2 ? "0"+(dred*1).toString(16) : (dred*1).toString(16)}`;
+    if (dred < 255) dred+=Math.round(8/(1/30)*_DELTATIME);
+    rr.drawLine(currentCtx, {x1:res.w/2, y1:64}, {x2:res.w/2, y2:res.h-32}, dcolor, 1, 16, 64, 64);
 
     SCENE.render();
-    // rr.drawLine(currentCtx, {x1:xx1, y1:yy1}, {x2:xx2, y2:yy2}, "hotpink", 0);
-    // rr.drawLine(currentCtx, {x1:xxx1, y1:yyy1}, {x2:xxx2, y2:yyy2}, "hotpink", 0);
-    // rr.drawLine(currentCtx, {x1:ball.center.x, y1:ball.center.y}, {x2:ball.oldcenter.x, y2:ball.oldcenter.y}, "green", 0);
+    // rr.drawLine(currentCtx, {x1:xx1, y1:yy1}, {x2:xx2, y2:yy2}, "hotpink", 0.5);
+    // rr.drawLine(currentCtx, {x1:xxx1, y1:yyy1}, {x2:xxx2, y2:yyy2}, "hotpink", 0.5);
+    rr.drawLine(currentCtx, {x1:ball.center.x, y1:ball.center.y}, {x2:ball.oldcenter.x, y2:ball.oldcenter.y}, "white", 0.3);
 
+    currentCtx.globalAlpha = 0.5/(1/30)*_DELTATIME;
     rr.render();
 };
 

@@ -11,6 +11,8 @@ class RectCollider
         this.type = "rect";
         this.center = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
         this.oldcenter = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
+
+        this.reposition = true;
     }
 
     repositionR({x,y,w,h,o}, {l,r,t,b})
@@ -178,7 +180,7 @@ class RectCollider
                 let tsides = {};
                 if (this.sides != _NOCOLLISION && this.compileSides(tsides = this.RRCollision(target, {l,r,t,b})))
                 {
-                    this.repositionR(target.t, tsides);
+                    if (target.reposition) this.repositionR(target.t, tsides);
                     if (rRR != undefined) rRR(target, tsides);
                     return true;
                 }
@@ -188,7 +190,7 @@ class RectCollider
             {
                 if (this.sides != _NOCOLLISION && this.compileSides(this.rectCircle(target, this.sides)))
                 {
-                    this.repositionC(target);
+                    if (target.reposition) this.repositionC(target);
                     return true;
                 }
                 return false;
@@ -356,6 +358,8 @@ class CircleCollider
         this.center = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
         this.oldcenter = {x:this.t.x - this.t.w*this.t.o.x - this.t.w/2, y:this.t.y- this.t.h*this.t.o.y - this.t.h/2};
         this.LineChecked = 0;
+        this.blacklisted = {};
+        this.reposition = true;
     }
 
     collideTop({x,y,w,h,o})
@@ -620,13 +624,13 @@ class CircleCollider
 
     isCollidingWith(target, FILLERRRRRRR, rR = undefined, rRR = undefined)
     {
-        if (target != undefined)
+        if (target != undefined) 
         {
             if (target.type == "rect")
             {
                 if (target.sides != _NOCOLLISION && this.circleRect(target.t, target.sides, rRR, target))
                 {
-                    if (this.LineChecked <= 1) this.repositionR(target, rR, rRR);
+                    if (target.reposition) if (this.LineChecked == 0) this.repositionR(target, rR, rRR);
                     return true;
                 }
                 return false;
@@ -637,34 +641,78 @@ class CircleCollider
             }
         }
     }
+    lineLine(x1, y1, x2, y2, x3, y3, x4, y4) {
 
-    circleLine({l,r,t,b}, m = 0, k = 0, rRR = undefined, target)
-    {
-        point.t.x = this.oldt.x;
-        point.t.y = this.oldt.y;
+        // calculate the direction of the lines
+        const uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+        const uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+      
+        // if uA and uB are between 0-1, lines are colliding
+        if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1)
+            return true;
 
-        const minX = Math.min(this.oldcenter.x, this.center.x);
-        const maxX = Math.max(this.oldcenter.x, this.center.x);
-        const minY = Math.min(this.oldcenter.y, this.center.y);
-        const maxY = Math.max(this.oldcenter.y, this.center.y);
+        return false;
+    }
+    lineRect(x1, y1, x2, y2, {l,r,t,b}, rRR, target) {
 
-        if( (m*l + k >= t && m*l + k <= b && l >= minX) ||
-            (m*r + k >= t && m*r + k <= b && r <= maxX) ||
-            ((t-k)/m >= l && (t-k)/m <= r && t >= minY) ||
-            ((b-k)/m >= l && (b-k)/m <= r && b <= maxY)   )
+        // check if the line has hit any of the rectangle's sides
+        // uses the Line/Line function below
+        const left =   this.lineLine(x1,y1,x2,y2, l,t, l,b);
+        const right =  this.lineLine(x1,y1,x2,y2, r,t, r,b);
+        const top =    this.lineLine(x1,y1,x2,y2, l,t, r,t);
+        const bottom = this.lineLine(x1,y1,x2,y2, l,b, r,b);
+      
+        // if ANY of the above are true, the line
+        // has hit the rectangle
+        if (left || right || top || bottom)
+        {
+            if (rRR != undefined) rRR(target, {l:false,r:false,t:false,b:false}, l,r,t,b);
             {
-                let tsides = {};
-                if (this.compileSides(tsides = this.RRCollision(target, {l,r,t,b})))
+                let tsides = {l:false,r:false,t:false,b:false};
+                if (this.compileSides(tsides = this.RRCollision(target)))
                 {
-                    this.repositionRR(target.t, tsides);
+                    if (target.reposition) this.repositionRR(target.t, tsides);
                     if (rRR != undefined) rRR(target, tsides);
                     this.LineChecked = 2;
                     return true;
                 }
-                return false;
+                    if (rRR != undefined) rRR(target, tsides, l,r,t,b);
+                return true;
             }
+        }
         return false;
-    }
+      }
+
+    // circleLine({l,r,t,b}, m = 0, k = 0, rRR = undefined, target)
+    // {
+    //     point.t.x = this.oldt.x;
+    //     point.t.y = this.oldt.y;
+    //     mmm = m;
+    //     kkkk = k;
+
+    //     const minX = Math.min(this.oldcenter.x, this.center.x);
+    //     const maxX = Math.max(this.oldcenter.x, this.center.x);
+    //     const minY = Math.min(this.oldcenter.y, this.center.y);
+    //     const maxY = Math.max(this.oldcenter.y, this.center.y);
+
+    //     if( (m*l + k >= t && m*l + k <= b && l <= minX) ||
+    //         (m*r + k >= t && m*r + k <= b && r >= maxX) ||
+    //         ((t-k)/m >= l && (t-k)/m <= r && t <= minY) ||
+    //         ((b-k)/m >= l && (b-k)/m <= r && b >= maxY)   )
+    //         {
+    //             let tsides = {l:false,r:false,t:false,b:false};
+    //             console.log(minX)
+    //             if (this.compileSides(tsides = this.RRCollision(target)))
+    //             {
+    //                 if (target.reposition) this.repositionRR(target.t, tsides);
+    //                 if (rRR != undefined) rRR(target, tsides, l,r,t,b);
+    //                 this.blacklisted = target;
+    //                 this.LineChecked = 2;
+    //                 return true;
+    //             }
+    //         }
+    //     return false;
+    // }
 
     circleRect({x,y,w,h,o}, sides, rRR = undefined, target)
     {
@@ -687,11 +735,9 @@ class CircleCollider
         const distance = Math.sqrt(distX**2+distY**2);
       
         // if the distance is less than the radius, collision!
-        const m = (this.center.y-this.oldcenter.y) / (this.center.x-this.oldcenter.x);
-        const k = this.center.y-m*this.center.x;
-        if ((distance != 0 && distance <= this.t.w/2))
+        if ((distance != 0 && distance <= this.t.w/2) || (this.center.x >= rx && this.center.x <= rx+w && this.center.y >= ry && this.center.y <= ry+h))
             return true;
-        if (this.LineChecked == 0) if (this.circleLine({l:rx, r:rx+w, t:ry, b:ry+h}, m, k, rRR, target))
+        if (this.lineRect(this.center.x, this.center.y, this.oldcenter.x, this.oldcenter.y, {l:rx, r:rx+w, t:ry, b:ry+h}, rRR, target))
             return true;
 
         return false;
@@ -721,6 +767,7 @@ class CircleCollider
     updateTransform()
     {
         if (this.LineChecked > 0) this.LineChecked--;
+        if (this.LineChecked - 1 == -1) this.blacklisted = {};
         this.t = this.parent.t;
         this.center = this.parent.center;
     }
