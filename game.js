@@ -52,6 +52,11 @@ function SETUP()
     pad2.t.y = res.h/2-64;
     pad2.v.y = 0;
 
+    if (P_VERSUS == 2)
+        pad2.t.x = -10;
+    else
+        pad2.t.x = res.w-64;
+
     padSpeed = P_PADACCELERATION/(1/30);
 
     ball.t.x = res.w/2;

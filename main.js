@@ -59,9 +59,13 @@ let lps = padSpeed * _DELTATIME;
 
 const update = () =>
 {
+    // bgm..
     BGM.volume = VOLUME/10/2;
+
+    //pad speed based on deltatime
     lps = padSpeed * _DELTATIME;
 
+    // Switch directions on input
     switch (true)
     {
         case (keys["KeyW"]):
@@ -93,6 +97,7 @@ const update = () =>
 
     if (freeze || win) return;
 
+    //pad controls/CPU
     if (P_VERSUS == 3)
         pad1.v.y += (ball.center.y > pad1.center.y ? -lps : (ball.center.y == pad1.center.y ? -pad1.v.y : lps));
     else
@@ -106,6 +111,7 @@ const update = () =>
     SCENE.update();
 
 
+    // pad top bottom limits
     if (pad1.t.y <= 4)
     {
         pad1.v.y = 0;
@@ -127,6 +133,7 @@ const update = () =>
         pad2.t.y =  res.h - 4 - pad2.t.h + pad2.t.h*pad2.t.o.y;
     }
 
+    // Collisions
     SCENE.collisionsWith (
         ball, (target) => {
             const sfx = new Audio(SFXPath);
@@ -144,6 +151,14 @@ const update = () =>
                     cpts2++;
                     pts2.word = [cpts2+""];
 
+                    if (P_VERSUS == 2 && cpts2 >= 1)
+                    {
+                        SCENE.elements.push(new Word({x:res.w/2, y:res.h/2, h:128, o:{x:-0.5, y:-0.5}}, ["GAME OVER"], "white"));
+                        SCENE.elements.push(new Word({x:res.w/2, y:res.h/2+128, h:64, o:{x:-0.5, y:-0.5}}, ["Press Esc. To Continue"], "white"));
+                        win = true;
+                        return;
+                    }
+                        
                     if (cpts2 >= P_TARGETSCORE && !started)
                     {
                         SCENE.elements.push(new Word({x:res.w/2, y:res.h/2, h:128, o:{x:-0.5, y:-0.5}}, ["PLAYER 2 WINS"], "white"));
@@ -171,7 +186,7 @@ const update = () =>
                         win = true;
                     }
 
-                    if (P_MODE == 1)
+                    if (P_MODE == 1 && P_VERSUS != 2)
                     {
                         ball.t.x = res.w/2;
                         ball.t.y = res.h/2;
@@ -181,11 +196,13 @@ const update = () =>
                     break;
             }
         },
+        // collide pad corner
         (target) => {
             
             ball.v.x *= -1;
             ball.v.y *= -1;
         },
+        // collide pad edge
         (target, tsides, l = undefined, r = undefined, t = undefined, b = undefined) => {
             if (l != undefined)
             {
@@ -214,9 +231,11 @@ const update = () =>
         },
     );
 
+    // Dashed line color change
     if (ball.collideWith(DLHitbox))
         dsaturation = 100;
 
+    // Ball clipped! Reset position
     if (ball.t.x < 0 || ball.t.x > res.w || ball.t.y < 0 || ball.t.y > res.h)
     {
         ball.t.x = res.w/2;
@@ -225,12 +244,14 @@ const update = () =>
         ball.v.y = 512;
     }
 
+    // Ball clipped! Reset position
     if (ball.t.x != ball.t.x || ball.t.y != ball.t.y)
     {
         ball.t.x = res.w/2;
         ball.t.y = res.h/2;
     }
-            
+
+    // Retired Helpers
     // aa = (ball.center.y-ball.oldcenter.y) / (ball.center.x-ball.oldcenter.x);
     // kk = ball.center.y-aa*ball.center.x;
     xxx1 = 0;
@@ -239,6 +260,7 @@ const update = () =>
     yyy2 = res.w*aa+kk;
 };
 
+// Retired Helpers
 // hard coded helpers (BLASPHEMEOUS!!!!!!!!)
 let xx1 = 0;
 let yy1 = 0;
@@ -256,18 +278,20 @@ const render = () =>
 {
     rr.drawBackground(currentCtx, "black");
 
-    // *special for pong
+    // *special for pong (color)
     if (dsaturation < 0) dsaturation = 0;
     dcolor = `hsl(${HUE}, ${dsaturation}%, ${50-dsaturation/2+50}%)`;
     if (dsaturation > 0) dsaturation-=2/(1/30)*_DELTATIME;
     rr.drawLine(currentCtx, {x1:res.w/2, y1:64}, {x2:res.w/2, y2:res.h-32}, dcolor, 1, 16, 64, 64);
 
     SCENE.render();
+    // Retired Helpers
     // rr.drawLine(currentCtx, {x1:xx1, y1:yy1}, {x2:xx2, y2:yy2}, "hotpink", 0.5);
     // rr.drawLine(currentCtx, {x1:xxx1, y1:yyy1}, {x2:xxx2, y2:yyy2}, "hotpink", 0.5);
     rr.drawLine(currentCtx, {x1:ball.center.x, y1:ball.center.y}, {x2:ball.oldcenter.x, y2:ball.oldcenter.y}, "white", 0.3);
 
 
+    // Draw Settings Panel
     if (gameState == 0)
     {
         currentCtx.globalAlpha = 0.3;
