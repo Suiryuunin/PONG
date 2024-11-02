@@ -15,6 +15,16 @@ class Renderer
         this.display = canvas.getContext("2d");
         
         this.settings = document.createElement("canvas").getContext("2d");
+        this.sScale = 0.8;
+        this.sBoundingBox = document.createElement("div");
+        this.sBoundingBox.style.position = "absolute";
+        this.sBoundingBox.style.left = `${canvas.getBoundingClientRect().x+res.w*((1-this.sScale)/2)}px`;
+        this.sBoundingBox.style.top  = `${canvas.getBoundingClientRect().y+res.h*((1-this.sScale)/2)}px`;
+        this.sBoundingBox.style.width  = `${Math.floor(this.display.canvas.width * this.sScale)}px`;
+        this.sBoundingBox.style.height = `${Math.floor(this.display.canvas.height * this.sScale)}px`;
+        this.sBoundingBox.width  = Math.floor(this.display.canvas.width * this.sScale);
+        this.sBoundingBox.height = Math.floor(this.display.canvas.height * this.sScale);
+        document.body.appendChild(this.sBoundingBox);
         
         this.color = "black";
         this.font = "VCR_OSD";
@@ -96,7 +106,7 @@ class Renderer
         {
             ctx.strokeStyle = color;
             ctx.beginPath();
-            ctx.rect(x + w * o.x, y + o.y, w + 8, size * word.length);
+            ctx.rect(x + w * o.x, y + size*o.y, w+16, size * word.length);
             ctx.stroke();
         }
         ctx.globalAlpha = 1;
@@ -210,6 +220,13 @@ class Renderer
             this.display.canvas.height = Math.ceil(h);
             this.display.canvas.width =  Math.ceil(h / ratio);
         }
+
+        this.sBoundingBox.style.left = `${canvas.getBoundingClientRect().x+this.display.canvas.width*((1-this.sScale)/2)}px`;
+        this.sBoundingBox.style.top  = `${canvas.getBoundingClientRect().y+this.display.canvas.height*((1-this.sScale)/2)}px`;
+        this.sBoundingBox.style.width  = `${Math.floor(this.display.canvas.width * this.sScale)}px`;
+        this.sBoundingBox.style.height = `${Math.floor(this.display.canvas.height * this.sScale)}px`;
+        this.sBoundingBox.width  = Math.floor(this.display.canvas.width * this.sScale);
+        this.sBoundingBox.height = Math.floor(this.display.canvas.height * this.sScale);
         // this.canvas.style.transform = "translate(-50%, -50%)scale("+_DOWNSCALE+"00%)";
     }
 
@@ -222,5 +239,15 @@ class Renderer
             Math.floor(currentCtx.canvas.width/*/_DOWNSCALE*/), Math.floor(currentCtx.canvas.height/*/_DOWNSCALE*/),
             0, 0,
             this.display.canvas.width, this.display.canvas.height);
+
+        if (gameState == 0)
+        {
+            this.display.drawImage(
+                this.settings.canvas,
+                0, 0,
+                this.settings.canvas.width, this.settings.canvas.height,
+                Math.floor(this.display.canvas.width * (1-this.sScale)/2), Math.floor(this.display.canvas.height * (1-this.sScale)/2),
+                Math.floor(this.display.canvas.width * this.sScale), Math.floor(this.display.canvas.height * this.sScale));
+        }
     }
 }

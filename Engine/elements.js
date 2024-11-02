@@ -2,19 +2,20 @@ let id = 0;
 
 class Word
 {
-    constructor({x,y,h,o}, word = "", c, collision = _NOCOLLISION)
+    constructor({x,y,h,o}, word = "", c, border = false, wordUpdate = undefined)
     {
         this.word = word;
+        this.wordUpdate = wordUpdate;
         this.id = id;
         id++;
         this.t = {x:x,y:y,h:h,o:o};
         this.ot = {x:x,y:y,h:h,o:o};
         this.c = c;
         this.oc = c;
+        this.border = border;
         
         this.visible = true;
         this.active = true;
-        this.collision = collision;
         
         this.alpha = 1;
 
@@ -31,7 +32,7 @@ class Word
 
     render(ctx = currentCtx)
     {
-        rr.drawWord(ctx, [this.word], this.t.x, this.t.y, this.t.o, false, this.t.h, this.c, this.alpha,this.t.h);
+        rr.drawWord(ctx, (this.wordUpdate != undefined) ? [this.wordUpdate()] : this.word, this.t.x, this.t.y, this.t.o, this.border, this.t.h, this.c, this.alpha,this.t.h);
     }
 }
 
@@ -40,6 +41,9 @@ class StaticObject
     constructor(type = "none", {x,y,w,h,o}, c, collider = undefined, initFrame = 0, delay = 1, loop = true)
     {
         this.type = type;
+        this.content = "fill";
+        this.lineWidth = 4;
+
         this.name = "nameless";
         this.id = id;
         id++;
@@ -47,7 +51,7 @@ class StaticObject
         this.ot = {x:x,y:y,w:w,h:h,o:o};
         this.c = c;
         this.oc = c;
-        this.red = 255;
+        this.saturation = 0;
         this.ro = {x:0,y:0};
         this.hovering = false;
         this.visible = true;
@@ -113,7 +117,7 @@ class StaticObject
         {
             case "rect":
             {
-                rr.drawRect(ctx, this.t, this.c, this.alpha);
+                rr.drawRect(ctx, this.t, this.c, this.alpha, this.content, this.lineWidth);
                 break;
             }
 
@@ -156,36 +160,36 @@ class StaticObject
                 console.log("INVALID TYPE!");
         }
         if (this.renderMore != undefined)
-            this.renderMore();
+            this.renderMore(ctx);
     }
 
-    // isCollidingWith({x,y,w,h,o})
-    // {
-    //     const _x = this.t.x+this.t.w*this.t.o.x;
-    //     const _y = this.t.y+this.t.h*this.t.o.y;
-    //     const __x = x + w * o.x;
-    //     const __y = y + h * o.y;
-    //     return (
-    //         _x+this.t.w >= __x &&
-    //         _x <= __x+w &&
-    //         _y+this.t.h >= __y &&
-    //         _y <= __y+h
-    //     );
-    // }
+    isCollidingWith({x,y,w,h,o})
+    {
+        const _x = this.t.x+this.t.w*this.t.o.x;
+        const _y = this.t.y+this.t.h*this.t.o.y;
+        const __x = x + w * o.x;
+        const __y = y + h * o.y;
+        return (
+            _x+this.t.w >= __x &&
+            _x <= __x+w &&
+            _y+this.t.h >= __y &&
+            _y <= __y+h
+        );
+    }
 
-    // isOCollidingWith({x,y,w,h,o})
-    // {
-    //     const _x = this.ot.x+this.ot.w*this.ot.o.x;
-    //     const _y = this.ot.y+this.ot.h*this.ot.o.y;
-    //     const __x = x + w * o.x;
-    //     const __y = y + h * o.y;
-    //     return (
-    //         _x+this.ot.w >= __x &&
-    //         _x <= __x+w &&
-    //         _y+this.ot.h >= __y &&
-    //         _y <= __y+h
-    //     );
-    // }
+    isOCollidingWith({x,y,w,h,o})
+    {
+        const _x = this.ot.x+this.ot.w*this.ot.o.x;
+        const _y = this.ot.y+this.ot.h*this.ot.o.y;
+        const __x = x + w * o.x;
+        const __y = y + h * o.y;
+        return (
+            _x+this.ot.w >= __x &&
+            _x <= __x+w &&
+            _y+this.ot.h >= __y &&
+            _y <= __y+h
+        );
+    }
 }
 
 class Box extends StaticObject
@@ -269,16 +273,16 @@ class Dynamic extends StaticObject
 
     scaleBy(s)
     {
-        this.t.w *= s;
-        this.t.h *= s;
+        this.t.w = this.ot.w *s;
+        this.t.h = this.ot.h *s;
     }
 
     update()
     {
         // *special for pong
-        if (this.red > 255) this.red = 255;
-        this.c = `#ff${(this.red*1).toString(16).length < 2 ? "0"+(this.red*1).toString(16) : (this.red*1).toString(16)}${(this.red*1).toString(16).length < 2 ? "0"+(this.red*1).toString(16) : (this.red*1).toString(16)}`;
-        if (this.red < 255) this.red+=Math.round(8/(1/30)*_DELTATIME);
+        if (this.saturation < 0) this.saturation = 0;
+        this.c = `hsl(${HUE}, ${this.saturation}%, ${50-this.saturation/2+50}%)`;
+        if (this.saturation > 0) this.saturation-=2/(1/30)*_DELTATIME;
 
         if (this.hitbox)
             this.hitbox.parent = this;

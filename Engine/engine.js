@@ -32,11 +32,11 @@ class Engine
         _PDELTATIME = 1 / this.fps;
 
         window.addEventListener("keydown", (e) => {
-            if (e.code == "Digit9" && this.fps > 1)
+            if (e.code == "BracketLeft" && this.fps > 1)
             {
                 this.fps--;
             }
-            if (e.code == "Digit0" && this.fps < this.fpsCap)
+            if (e.code == "BracketRight" && this.fps < this.fpsCap)
             {
                 this.fps++;
             }

@@ -11,10 +11,11 @@ const resize = () =>
 // UI
 
 let cpts1 = 0;
-const pts1 = new Word({x:res.w/2-64, y:64, h:128, o:{x:-1, y:-1}}, cpts1+"", "white");
+const pts1 = new Word({x:res.w/2-64, y:64, h:128, o:{x:-1, y:-1}}, [cpts1+""], "white");
 let cpts2 = 0;
-const pts2 = new Word({x:res.w/2+64, y:64, h:128, o:{x:0, y:-1}}, cpts2+"", "white");
+const pts2 = new Word({x:res.w/2+64, y:64, h:128, o:{x:0, y:-1}}, [cpts2+""], "white");
 
+//Game
 
 const ball = new Dynamic("circle", {x:res.w/2,y:res.h/2,w:32,h:32, o: {x:-0.5,y:-0.5}}, "red", new CircleCollider());
 
@@ -39,33 +40,35 @@ point2.alpha  = 0;
 circle1.alpha = 0;
 circle2.alpha = 0;
 
-SCENE.init(point);
-SCENE.addBulk([point2, circle1, circle2, ball, pad1, pad2, EDGEL, EDGER, EDGET, EDGEB]);
-SCENE.addBulk([pts1, pts2]);
+SCENE.elements = [point,
+    point2, circle1, circle2, ball, pad1, pad2, EDGEL, EDGER, EDGET, EDGEB, 
+    pts1, pts2];
 
 ball.v.x = 1024;
 ball.v.y = 512;
 
 //HARD CODED HELPERS ;-;
 let my = 0;
+let my2 = 0;
 
 let aa = 0;
 let kk = 0;
 
-let padSpeed = 64/(1/30);
+let padSpeed = P_PADACCELERATION/(1/30);
 let lps = padSpeed * _DELTATIME;
 
 const update = () =>
 {
+    BGM.volume = VOLUME/10/2;
     lps = padSpeed * _DELTATIME;
 
     switch (true)
     {
-        case (keys["KeyW"] || keys["ArrowUp"]):
+        case (keys["KeyW"]):
             my = 1;
             break;
 
-        case (keys["KeyS"] || keys["ArrowDown"]):
+        case (keys["KeyS"]):
             my = -1;
             break;
 
@@ -73,9 +76,32 @@ const update = () =>
             my = 0;
             break;
     }
+    switch (true)
+    {
+        case (keys["ArrowUp"]):
+            my2 = 1;
+            break;
 
-    pad1.v.y = my != 0 ? pad1.v.y + lps*my : (Math.abs(pad1.v.y)-lps >= 0 ? pad1.v.y-lps*Math.sign(pad1.v.y) : 0);
-    pad2.v.y += (ball.center.y > pad2.center.y ? -lps : (ball.center.y == pad2.center.y ? -pad2.v.y : lps));
+        case (keys["ArrowDown"]):
+            my2 = -1;
+            break;
+
+        default:
+            my2 = 0;
+            break;
+    }
+
+    if (freeze || win) return;
+
+    if (P_VERSUS == 3)
+        pad1.v.y += (ball.center.y > pad1.center.y ? -lps : (ball.center.y == pad1.center.y ? -pad1.v.y : lps));
+    else
+        pad1.v.y = my != 0 ? pad1.v.y + lps*my : (Math.abs(pad1.v.y)-lps >= 0 ? pad1.v.y-lps*Math.sign(pad1.v.y) : 0);
+
+    if (P_VERSUS > 0)
+        pad2.v.y += (ball.center.y > pad2.center.y ? -lps : (ball.center.y == pad2.center.y ? -pad2.v.y : lps));
+    else
+        pad2.v.y = my2 != 0 ? pad2.v.y + lps*my2 : (Math.abs(pad2.v.y)-lps >= 0 ? pad2.v.y-lps*Math.sign(pad2.v.y) : 0);
 
     SCENE.update();
 
@@ -103,8 +129,11 @@ const update = () =>
 
     SCENE.collisionsWith (
         ball, (target) => {
-            target.red = 0;
-            ball.red = 0;
+            const sfx = new Audio(SFXPath);
+            sfx.volume = VOLUME/10;
+            sfx.play();
+            target.saturation = 100;
+            ball.saturation = 100;
 
             if (target === pad1 || target === pad2)
                 ball.v.y += target.v.y *0.4;
@@ -113,12 +142,42 @@ const update = () =>
             {
                 case EDGEL:
                     cpts2++;
-                    pts2.word = cpts2+"";
+                    pts2.word = [cpts2+""];
+
+                    if (cpts2 >= P_TARGETSCORE && !started)
+                    {
+                        SCENE.elements.push(new Word({x:res.w/2, y:res.h/2, h:128, o:{x:-0.5, y:-0.5}}, ["PLAYER 2 WINS"], "white"));
+                        SCENE.elements.push(new Word({x:res.w/2, y:res.h/2+128, h:64, o:{x:-0.5, y:-0.5}}, ["Press Esc. To Continue"], "white"));
+                        win = true;
+                    }
+
+                    if (P_MODE == 1)
+                    {
+                        ball.t.x = res.w/2;
+                        ball.t.y = res.h/2;
+                        ball.v.x = 1024;
+                        ball.v.y = 512;
+                    }
                     break;
 
                 case EDGER:
                     cpts1++;
-                    pts1.word = cpts1+"";
+                    pts1.word = [cpts1+""];
+
+                    if (cpts1 >= P_TARGETSCORE && !started)
+                    {
+                        SCENE.elements.push(new Word({x:res.w/2, y:res.h/2, h:128, o:{x:-0.5, y:-0.5}}, ["PLAYER 1 WINS"], "white"));
+                        SCENE.elements.push(new Word({x:res.w/2, y:res.h/2+128, h:64, o:{x:-0.5, y:-0.5}}, ["Press Esc. To Continue"], "white"));
+                        win = true;
+                    }
+
+                    if (P_MODE == 1)
+                    {
+                        ball.t.x = res.w/2;
+                        ball.t.y = res.h/2;
+                        ball.v.x = 1024;
+                        ball.v.y = 512;
+                    }
                     break;
             }
         },
@@ -156,7 +215,7 @@ const update = () =>
     );
 
     if (ball.collideWith(DLHitbox))
-        dred = 0;
+        dsaturation = 100;
 
     if (ball.t.x < 0 || ball.t.x > res.w || ball.t.y < 0 || ball.t.y > res.h)
     {
@@ -191,16 +250,16 @@ let yyy1 = 0;
 let xxx2 = 0;
 let yyy2 = 0;
 
-let dred = 255;
-let dcolor = "#ffffff";
+let dsaturation = 0;
+let dcolor = `hsl(${HUE}, ${dsaturation}%, ${50-dsaturation/2+50}%)`;
 const render = () =>
 {
     rr.drawBackground(currentCtx, "black");
 
     // *special for pong
-    if (dred > 255) dred = 255;
-    dcolor = `#ff${(dred*1).toString(16).length < 2 ? "0"+(dred*1).toString(16) : (dred*1).toString(16)}${(dred*1).toString(16).length < 2 ? "0"+(dred*1).toString(16) : (dred*1).toString(16)}`;
-    if (dred < 255) dred+=Math.round(8/(1/30)*_DELTATIME);
+    if (dsaturation < 0) dsaturation = 0;
+    dcolor = `hsl(${HUE}, ${dsaturation}%, ${50-dsaturation/2+50}%)`;
+    if (dsaturation > 0) dsaturation-=2/(1/30)*_DELTATIME;
     rr.drawLine(currentCtx, {x1:res.w/2, y1:64}, {x2:res.w/2, y2:res.h-32}, dcolor, 1, 16, 64, 64);
 
     SCENE.render();
@@ -208,7 +267,22 @@ const render = () =>
     // rr.drawLine(currentCtx, {x1:xxx1, y1:yyy1}, {x2:xxx2, y2:yyy2}, "hotpink", 0.5);
     rr.drawLine(currentCtx, {x1:ball.center.x, y1:ball.center.y}, {x2:ball.oldcenter.x, y2:ball.oldcenter.y}, "white", 0.3);
 
+
+    if (gameState == 0)
+    {
+        currentCtx.globalAlpha = 0.3;
+        rr.drawBackground(currentCtx, `hsl(${HUE}, 100%, 50%)`);
+
+        rr.drawBackground(rr.settings, "black");
+        rr.drawRect(rr.settings, {x:0,y:0,w:rr.settings.canvas.width, h:rr.settings.canvas.height, o:{x:0,y:0}}, "white", 1, "border", 4);
+        for (const e of pages[currentPage])
+        {
+            e.render(rr.settings);
+        }
+            
+    }
     currentCtx.globalAlpha = 0.5/(1/30)*_DELTATIME;
+
     rr.render();
 };
 
