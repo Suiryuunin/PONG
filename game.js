@@ -100,9 +100,8 @@ addEventListener("keydown", (e) => {
                 if (win)
                 {
                     started = true;
-                    _VERSUS = 3;
                     SETUP();
-                    _VERSUS = 0;
+                    P_VERSUS = 3;
 
                     SCENE.elements = [point,
                         point2, circle1, circle2, ball, pad1, pad2, EDGEL, EDGER, EDGET, EDGEB, 

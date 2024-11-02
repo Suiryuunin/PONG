@@ -59,7 +59,7 @@ class Button extends Dynamic
 
             document.addEventListener("mousedown", (e) =>
             {
-                if (this.page != currentPage) return;
+                if (this.page != currentPage) {this.pressedFirst = false; return;}
                 this.pressedFirst = true;
                 
                 const p = toCanvasCoords(this.cv, this.ctx, e.clientX, e.clientY);
@@ -74,8 +74,8 @@ class Button extends Dynamic
             document.addEventListener("mouseup", (e) =>
             {
                 if (this.page != currentPage || this.pressedFirst == false) return;
-                
-                this.pressedFirst == false;
+
+                this.pressedFirst = false;
 
                 this.mouse = false;
                 const p = toCanvasCoords(this.cv, this.ctx, e.clientX, e.clientY);

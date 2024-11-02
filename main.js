@@ -170,7 +170,7 @@ const update = () =>
                     {
                         ball.t.x = res.w/2;
                         ball.t.y = res.h/2;
-                        ball.v.x = 1024;
+                        ball.v.x = P_HORIZONTALSPEED * 64;
                         ball.v.y = 512;
                     }
                     break;
@@ -190,7 +190,7 @@ const update = () =>
                     {
                         ball.t.x = res.w/2;
                         ball.t.y = res.h/2;
-                        ball.v.x = 1024;
+                        ball.v.x = P_HORIZONTALSPEED * 64;
                         ball.v.y = 512;
                     }
                     break;
@@ -240,7 +240,7 @@ const update = () =>
     {
         ball.t.x = res.w/2;
         ball.t.y = res.h/2;
-        ball.v.x = 1024;
+        ball.v.x = P_HORIZONTALSPEED * 64;
         ball.v.y = 512;
     }
 
